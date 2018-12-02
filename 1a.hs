@@ -1,3 +1,3 @@
-solve input = show $ sum $ map read $ map (dropWhile (== '+')) $ words input
+parse = map read . map (dropWhile (=='+')) . words
 
-main = interact solve
+main = interact (show . sum . parse)
