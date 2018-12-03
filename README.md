@@ -1,5 +1,5 @@
 # adventofcode
-Solutions to the puzzles on adventofcode.com
+Solutions to the puzzles on [adventofcode](https://adventofcode.com)
 
 ## 2018
 
