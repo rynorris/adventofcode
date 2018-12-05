@@ -28,11 +28,14 @@ deleteTwo f us = before ++ after where
     after = drop 2 $ dropWhile (not . f) us
 
 simplify :: [Unit] -> [Unit]
-simplify units = (\us -> traceShow (length us) us) $ map fst $ deleteTwo (uncurry shouldCancel) $ zip units ((drop 1 units) ++ [Unit '!' True])
+simplify (u1:u2:us) | shouldCancel u1 u2 = us
+                     | otherwise = u1 : simplify (u2:us)
+simplify us = us
 
 simplest :: [Unit] -> [Unit]
-simplest us | (length (simplify us)) == (length us) = us
-            | otherwise = simplest (simplify us)
+simplest us | length simpler == length us = us
+            | otherwise = simplest simpler where
+        simpler = simplify us
 
 solve :: [Unit] -> Int
 solve = length . simplest
