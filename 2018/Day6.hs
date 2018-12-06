@@ -21,12 +21,6 @@ splitCoords [] = []
 parse :: String -> [Coord]
 parse = splitCoords . map read . words . (replace "," ' ')
 
-neighbours :: Coord -> Set.Set Coord
-neighbours (Coord u v) = Set.fromList [Coord (u-1) v, Coord (u+1) v, Coord u (v-1), Coord u (v+1)]
-
-boundary :: Set.Set Coord -> Set.Set Coord
-boundary cs = Set.fold (\c s -> Set.union s (neighbours c)) Set.empty cs
-
 runFor :: Int -> (a -> a) -> a -> a
 runFor 0 f x = x
 runFor n f x = runFor (n-1) f (f x)
