@@ -1,5 +1,7 @@
 module Day4 where 
 
+import Common
+
 import Data.List 
 import Data.List.Split
 
@@ -21,12 +23,6 @@ minuteMinute (SleepMinute _ m) = m
 isBegin :: Event -> Bool
 isBegin (Event _ (Begin _)) = True
 isBegin _ = False
-
-replace :: String -> Char -> String -> String
-replace chars target s = map (\c -> if (elem c chars) then target else c) s
-
-remove :: String -> String -> String
-remove chars s = filter (\c -> not $ elem c chars) s
 
 constructTimestamp :: [Int] -> Timestamp
 constructTimestamp xs = Timestamp (xs!!0) (xs!!1) (xs!!2) (xs!!3) (xs!!4)
@@ -57,6 +53,3 @@ parseLine s = Event timestamp action where
 
 parse :: String -> [Event]
 parse = (map parseLine) . lines
-
-swap :: (Int, Int) -> (Int, Int)
-swap (a, b) = (b, a)

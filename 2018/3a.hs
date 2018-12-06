@@ -1,18 +1,7 @@
-replace :: String -> Char -> String -> String
-replace chars target s = map (\c -> if (elem c chars) then target else c) s
-
-parseLine :: String -> [Int]
-parseLine s = map read $ drop 1 $ words $ replace "#@,:x" ' ' s
-
-contains :: Int -> Int -> [Int] -> Bool
-contains x y square = foldl1 (&&) [
-    (x >= square !! 0),
-    (x < (square !! 0) + (square !! 2)),
-    (y >= square !! 1),
-    (y < (square !! 1) + (square !! 3))]
+import Day3
 
 countContainers :: [[Int]] -> Int -> Int -> Int
-countContainers squares x y = length $ take 2 $ filter (contains x y) squares
+countContainers squares x y = length $ take 2 $ filter (\s -> contains s (x, y)) squares
 
 countOverlaps :: Int -> Int -> [[Int]] -> Int
 countOverlaps w h squares = length $ filter (>= 2) $ map (uncurry (countContainers squares)) cells where

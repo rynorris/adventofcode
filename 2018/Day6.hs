@@ -1,5 +1,7 @@
 module Day6 where
 
+import Common
+
 import Data.List
 import qualified Data.Set as Set
 
@@ -10,9 +12,6 @@ coordX (Coord x _) = x
 
 coordY :: Coord -> Int
 coordY (Coord _ y) = y
-
-replace :: String -> Char -> String -> String
-replace chars target s = map (\c -> if (elem c chars) then target else c) s
 
 splitCoords :: [Int] -> [Coord]
 splitCoords (u:v:us) = Coord u v : splitCoords us
