@@ -1,5 +1,7 @@
 module Day7 where
 
+import Data.List
+
 type Step = Char
 data Condition = Condition Step Step deriving (Show, Eq, Ord)
 
