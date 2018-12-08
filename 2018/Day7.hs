@@ -3,13 +3,7 @@ module Day7 where
 import Data.List
 
 type Step = Char
-data Condition = Condition Step Step deriving (Show, Eq, Ord)
-
-condDep :: Condition -> Step
-condDep (Condition d _) = d
-
-condStep :: Condition -> Step
-condStep (Condition _ s) = s
+data Condition = Condition { dep :: Step, step :: Step } deriving (Show, Eq, Ord)
 
 parseCondition :: String -> Condition
 parseCondition line = Condition (head (ws !! 1)) (head (ws !! 7)) where
@@ -19,10 +13,10 @@ parse :: String -> [Condition]
 parse = map parseCondition . lines
 
 allSteps :: [Condition] -> [Step]
-allSteps cs = nub $ sort $ (map condDep cs) ++ (map condStep cs)
+allSteps cs = nub $ sort $ (map dep cs) ++ (map step cs)
 
 canRun :: [Condition] -> Step -> Bool
-canRun cs s = null $ filter (== s) $ map condStep cs
+canRun cs s = null $ filter (== s) $ map step cs
 
 nextToRun :: [Condition] -> [Step] -> Maybe Step
 nextToRun cs ss | null runnable  = Nothing

@@ -6,7 +6,7 @@ import Data.Maybe
 order :: [Condition] -> [Step] -> [Step]
 order cs ss | null cs = ss
             | isJust next = let next = nextToRun cs ss in
-            fromJust next : order (filter (\c -> condDep c /= fromJust next) cs) (filter (/= (fromJust next)) ss)
+            fromJust next : order (filter (\c -> dep c /= fromJust next) cs) (filter (/= (fromJust next)) ss)
     where next = nextToRun cs ss
 
 solve :: [Condition] -> [Step]

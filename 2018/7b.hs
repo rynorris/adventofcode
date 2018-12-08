@@ -4,20 +4,17 @@ import Data.Char
 import Data.List 
 import Data.Maybe
 
-data Task = Task Step Int deriving (Show, Eq, Ord)
+data Task = Task { taskStep :: Step, remaining :: Int } deriving (Show, Eq, Ord)
 data Workshop = Workshop { workers :: Int, conds :: [Condition], steps :: [Step], tasks :: [Task] } deriving (Show)
 
 fromStep :: Step -> Task
 fromStep s = Task s (duration s)
 
-toStep :: Task -> Step
-toStep (Task s _) = s
-
 tick :: Task -> Task
 tick (Task s t) = Task s (t-1)
 
 isDone :: Task -> Bool
-isDone (Task _ t) = t == 0
+isDone = (== 0) . remaining
 
 duration :: Step -> Int
 duration s = (ord s) - (ord 'A') + 61
@@ -32,9 +29,9 @@ assignTasks (Workshop w cs ss ts)
     where next = nextToRun cs ss
 
 finishTasks :: Workshop -> Workshop
-finishTasks (Workshop w cs ss ts) = Workshop w (filter (\c -> not $ elem (condDep c) finished) cs) ss running
+finishTasks (Workshop w cs ss ts) = Workshop w (filter (\c -> not $ elem (dep c) finished) cs) ss running
     where running = filter (not . isDone) ts
-          finished = map toStep $ filter isDone ts
+          finished = map taskStep $ filter isDone ts
 
 doWork :: Workshop -> Workshop
 doWork (Workshop w cs ss ts) = Workshop w cs ss (map tick ts)
