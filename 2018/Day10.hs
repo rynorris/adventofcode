@@ -6,9 +6,6 @@ data Light = Light Coord Coord deriving (Show, Eq, Ord)
 position :: Light -> Coord
 position (Light x v) = x
 
-magnitude :: Coord -> Int
-magnitude (Coord x y) = x + y
-
 parseLight :: String -> Light
 parseLight s = Light (Coord x y) (Coord v w)
     where (x:y:v:w:rest) = map read $ words $ filter (flip elem "01213456789- ") s
