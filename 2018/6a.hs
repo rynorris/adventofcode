@@ -8,11 +8,8 @@ import qualified Data.Set as Set
 setMinus :: (Ord a) => Set.Set a -> Set.Set a -> Set.Set a
 setMinus s t = Set.filter (\x -> not $ Set.member x t) s
 
-neighbours :: Coord -> Set.Set Coord
-neighbours (Coord u v) = Set.fromList [Coord (u-1) v, Coord (u+1) v, Coord u (v-1), Coord u (v+1)]
-
 boundary :: Set.Set Coord -> Set.Set Coord
-boundary cs = Set.fold (\c s -> Set.union s (neighbours c)) Set.empty cs
+boundary cs = Set.fold (\c s -> Set.union s $ Set.fromList $ neighbours c) Set.empty cs
 
 overlaps :: [Set.Set Coord] -> [Coord]
 overlaps = map head . filter (not . null . tail) . groupBy (==) . sort . foldl1 (++) . map Set.elems

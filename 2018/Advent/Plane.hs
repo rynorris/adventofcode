@@ -13,6 +13,9 @@ coordY (Coord _ y) = y
 coordAdd :: Coord -> Coord -> Coord
 coordAdd (Coord x y) (Coord u v) = Coord (x+u) (y+v)
 
+neighbours :: Coord -> [Coord]
+neighbours (Coord u v) = [Coord (u-1) v, Coord (u+1) v, Coord u (v-1), Coord u (v+1)]
+
 drawLine :: Int -> [Coord] -> String
 drawLine _ [] = ""
 drawLine x (c@(Coord x1 _):cs) | x == x1 = '*' : drawLine (x+1) cs
