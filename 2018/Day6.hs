@@ -1,17 +1,10 @@
 module Day6 where
 
-import Common
+import Advent.Strings
+import Advent.Plane
 
 import Data.List
 import qualified Data.Set as Set
-
-data Coord = Coord Int Int deriving (Show, Eq, Ord)
-
-coordX :: Coord -> Int
-coordX (Coord x _) = x
-
-coordY :: Coord -> Int
-coordY (Coord _ y) = y
 
 splitCoords :: [Int] -> [Coord]
 splitCoords (u:v:us) = Coord u v : splitCoords us

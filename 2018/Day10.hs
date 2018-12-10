@@ -1,6 +1,8 @@
 module Day10 where
 
-data Coord = Coord Int Int deriving (Show, Eq, Ord)
+import Advent.Function
+import Advent.Plane
+
 data Light = Light Coord Coord deriving (Show, Eq, Ord)
 
 position :: Light -> Coord
@@ -14,16 +16,16 @@ parse :: String -> [Light]
 parse = map parseLight . lines
 
 step :: Light -> Light
-step (Light (Coord x y) (Coord u v)) = Light (Coord (x+u) (y+v)) (Coord u v)
+step (Light x v) = Light (coordAdd x v) v
 
 score :: [Light] -> Int
 score ls = (maxX - minX) + (maxY - minY) where
-    minX = foldl1 min $ map (\(Coord x y)  -> x) cs
-    minY = foldl1 min $ map (\(Coord x y)  -> y) cs
-    maxX = foldl1 max $ map (\(Coord x y)  -> x) cs
-    maxY = foldl1 max $ map (\(Coord x y)  -> y) cs
+    minX = minimum $ map coordX cs
+    minY = minimum $ map coordY cs
+    maxX = maximum $ map coordX cs
+    maxY = maximum $ map coordY cs
     cs = map position ls
 
 timeline :: [Light] -> [[Light]]
-timeline start = scanl (\ls _ -> map step ls) start [0..]
+timeline = generate (map step)
 

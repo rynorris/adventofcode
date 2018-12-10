@@ -1,6 +1,6 @@
 module Day4 where 
 
-import Common
+import Advent.Strings
 
 import Data.List 
 import Data.List.Split

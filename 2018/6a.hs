@@ -1,5 +1,7 @@
 import Day6
 
+import Advent.Plane
+
 import Data.List
 import qualified Data.Set as Set
 

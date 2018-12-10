@@ -1,6 +1,6 @@
 module Day3 where
 
-import Common
+import Advent.Strings
 
 parseLine :: String -> [Int]
 parseLine s = map read $ drop 1 $ words $ replace "#@,:x" ' ' s

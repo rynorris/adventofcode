@@ -1,5 +1,7 @@
 import Day6
 
+import Advent.Plane
+
 distance :: Coord -> Coord -> Int
 distance (Coord x1 y1) (Coord x2 y2) = (abs (x1 - x2)) + (abs (y1 - y2))
 
