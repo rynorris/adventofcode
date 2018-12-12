@@ -1,3 +1,4 @@
+import Advent.Function
 import Advent.Plane
 
 serialNumber = 7857
@@ -15,14 +16,6 @@ powerLevel c@(Coord x y) = (flip (-) 5) $ hundredsDigit $ (* r) $ (+ serialNumbe
 grid :: Int -> Int -> Int -> Int -> [[Coord]]
 grid x1 y1 x2 y2 = [[Coord x y | x <- [x1..x2]] | y <- [y1..y2]]
 
-windows :: Int -> [a] -> [[a]]
-windows n xs | length xs >= n = take n xs : windows n (tail xs)
-             | otherwise = []
-
-transpose :: [[a]] -> [[a]]
-transpose [] = []
-transpose [l] = map (\x -> [x]) l
-transpose (l:ls) = zipWith (:) l $ transpose ls
 
 areaPowers :: Int -> [[Coord]] -> [[Int]]
 areaPowers size = transpose . map sumAreas . transpose . map sumAreas . map (map powerLevel)
