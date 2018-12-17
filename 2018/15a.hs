@@ -37,10 +37,6 @@ hitpoints (Elf hp) = hp
 hitpoints (Goblin hp) = hp
 hitpoints _ = 0
 
-readingOrder :: Coord -> Coord -> Ordering
-readingOrder (Coord x1 y1) (Coord x2 y2) | y1 == y2 = compare x1 x2
-                                         | otherwise = compare y1 y2
-
 targets :: Object -> Battlefield -> [(Coord, Object)]
 targets (Elf _) b = filter (isGoblin . snd) $ toList b
 targets (Goblin _) b = filter (isElf . snd) $ toList b

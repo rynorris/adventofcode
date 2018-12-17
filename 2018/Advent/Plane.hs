@@ -25,6 +25,9 @@ fromList = Plane . Map.fromList
 toList :: Plane a -> [(Coord, a)]
 toList = Map.toList . objects
 
+filterPlane :: (Coord -> a -> Bool) -> Plane a -> Plane a
+filterPlane pred p = Plane (Map.filterWithKey pred $ objects p)
+
 coordX :: Coord -> Int
 coordX (Coord x _) = x
 
@@ -34,8 +37,24 @@ coordY (Coord _ y) = y
 coordAdd :: Coord -> Coord -> Coord
 coordAdd (Coord x y) (Coord u v) = Coord (x+u) (y+v)
 
+readingOrder :: Coord -> Coord -> Ordering
+readingOrder (Coord x1 y1) (Coord x2 y2) | y1 == y2 = compare x1 x2
+                                         | otherwise = compare y1 y2
+
+above :: Coord -> Coord
+above (Coord x y) = Coord x (y-1)
+
+below :: Coord -> Coord
+below (Coord x y) = Coord x (y+1)
+
+left :: Coord -> Coord
+left (Coord x y) = Coord (x-1) y
+
+right :: Coord -> Coord
+right (Coord x y) = Coord (x+1) y
+
 neighbours :: Coord -> [Coord]
-neighbours (Coord u v) = [Coord (u-1) v, Coord (u+1) v, Coord u (v-1), Coord u (v+1)]
+neighbours c = [above c, below c, left c, right c]
 
 drawCoords :: [Coord] -> String
 drawCoords cs = unlines $ map (drawLineObjects (\x -> '#') minX) $ splitLines $ map (\c -> (c, True)) cs where
