@@ -56,6 +56,9 @@ right (Coord x y) = Coord (x+1) y
 neighbours :: Coord -> [Coord]
 neighbours c = [above c, below c, left c, right c]
 
+diags :: Coord -> [Coord]
+diags c = [(above . left) c, (above . right) c, (below . left) c, (below . right) c]
+
 drawCoords :: [Coord] -> String
 drawCoords cs = unlines $ map (drawLineObjects (\x -> '#') minX) $ splitLines $ map (\c -> (c, True)) cs where
           minX = foldl1 min $ map (\(Coord x y) -> x) cs
@@ -77,3 +80,7 @@ drawObjects f os = unlines $ map (drawLineObjects f minX) $ splitLines os where
 
 drawPlane :: Ord a => (a -> Char) -> Plane a -> String
 drawPlane f p = drawObjects f $ toList p
+
+parsePlane :: (Char -> a) -> String -> Plane a
+parsePlane f s = fromList $ concat $  map parseLine $ zip [0..] $ lines s where
+    parseLine (y,l) = map (\(x,c) -> (Coord x y, f c)) $ zip [0..] l
