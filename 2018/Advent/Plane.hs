@@ -72,7 +72,7 @@ drawLineObjects :: Ord a => (a -> Char) -> Int -> [(Coord, a)] -> String
 drawLineObjects _ _ [] = ""
 drawLineObjects f x (c@(Coord x1 _, o):cs) | x == x1 = f o : drawLineObjects f (x+1) cs
                                            | x > x1 = drawLineObjects f x cs
-                                           | otherwise = ' ' : drawLineObjects f (x+1) (c:cs)
+                                           | otherwise = '.' : drawLineObjects f (x+1) (c:cs)
 
 drawObjects :: Ord a => (a -> Char) -> [(Coord, a)] -> String
 drawObjects f os = unlines $ map (drawLineObjects f minX) $ splitLines os where
