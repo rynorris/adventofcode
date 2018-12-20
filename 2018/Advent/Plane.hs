@@ -26,6 +26,9 @@ getObject c (Plane os) = Map.lookup c os
 getObjectOr :: Coord -> a -> Plane a -> a
 getObjectOr c x p = maybe x id $ getObject c p
 
+isEmpty :: Coord -> Plane a -> Bool
+isEmpty c p = maybe True (\x -> False) $ getObject c p
+
 fromList :: [(Coord, a)] -> Plane a
 fromList = Plane . Map.fromList
 

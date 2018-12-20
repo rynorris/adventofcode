@@ -1,5 +1,7 @@
 import Advent.Plane
 
+import qualified Data.Set as Set
+
 import Debug.Trace
 
 data Direction = North | East | South | West deriving (Show, Eq, Ord)
@@ -36,7 +38,7 @@ consumeElement s = go s [] where
     go ('|':cs) es = let (p, cs') = consumePath cs in go cs' (p : es)
     go (')':cs) es = (Choices (reverse es), cs)
     go ('$':cs) es = (head es, cs)
-    go s es = let (e, s') = consumePath s in go (traceShow s' s') (e : es)
+    go s es = let (e, s') = consumePath s in go s' (e : es)
 
 parse :: String -> Route
 parse s = go (filter (\c -> elem c "NESW()|^$") s) [] where
@@ -66,10 +68,22 @@ fillMap m = foldl (\m c -> addObjectIfEmpty c Wall m) m $ [Coord x y | x <- [min
     maxY = (\x -> x + 1) $ maximum $ map coordY cs
     cs = map fst $ toList m
 
-solve :: Route -> Int
-solve r = 0
+distanceMap :: Map -> Plane Int
+distanceMap m = go m emptyPlane (Set.singleton $ fst $ head $ filter ((== Start) . snd) $ toList m) 0 where
+    go m dm wave d | Set.null wave = dm
+                   | otherwise = go m dm' wave' (d+1) where
+        dm' = foldl (\p c -> addObjectIfEmpty c d p) dm wave
+        wave' = Set.fromList $ filter (\c -> (/= Wall) $ getObjectOr c Wall m) $ filter (flip isEmpty dm) $ concat $ map neighbours $ Set.toList wave
 
-debug = drawPlane drawObject . fillMap . constructMap
+solve :: Route -> (Int, Int)
+solve r = (partA, partB) where
+    partA = (\x -> x `div` 2) $ maximum ds
+    partB = length $ filter (\d -> d `div` 2 >= 1000) ds
+    ds = map snd $ filter (\(c,d) -> (== Room) $ getObjectOr c Wall m) $ toList dm
+    dm = distanceMap m
+    m = fillMap $ constructMap r
+
+debug = drawPlane (last . show) . distanceMap . fillMap . constructMap
 
 main :: IO()
-main = interact (debug . parse)
+main = interact (show . solve . parse)
