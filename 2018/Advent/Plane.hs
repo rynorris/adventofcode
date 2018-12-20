@@ -2,6 +2,7 @@ module Advent.Plane where
 
 import Data.List
 import qualified Data.Map as Map
+import Data.Maybe
 
 data Coord = Coord Int Int deriving (Show, Eq, Ord)
 
@@ -13,11 +14,17 @@ emptyPlane = Plane Map.empty
 addObject :: Coord -> a -> Plane a -> Plane a
 addObject c o (Plane os) = Plane (Map.insert c o os)
 
+addObjectIfEmpty :: Coord -> a -> Plane a -> Plane a
+addObjectIfEmpty c o p = if (isNothing $ getObject c p) then addObject c o p else p
+
 removeObject :: Coord -> Plane a -> Plane a
 removeObject c (Plane os) = Plane (Map.delete c os)
 
 getObject :: Coord -> Plane a -> Maybe a
 getObject c (Plane os) = Map.lookup c os
+
+getObjectOr :: Coord -> a -> Plane a -> a
+getObjectOr c x p = maybe x id $ getObject c p
 
 fromList :: [(Coord, a)] -> Plane a
 fromList = Plane . Map.fromList

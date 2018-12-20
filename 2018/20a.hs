@@ -6,6 +6,17 @@ data Direction = North | East | South | West deriving (Show, Eq, Ord)
 type Route = [Element]
 data Element = Choices [Element] | Path [Element] | Step Direction deriving (Show, Eq, Ord)
 
+data Object = Start | Wall | Door | Room deriving (Show, Eq, Ord)
+type Map = Plane Object
+
+drawObject :: Object -> Char
+drawObject Wall = '#'
+drawObject Door = '+'
+drawObject Room = '.'
+drawObject Start = 'X'
+
+-- Parsing
+
 parseDirection :: Char -> Direction
 parseDirection 'N' = North
 parseDirection 'E' = East
@@ -32,10 +43,33 @@ parse s = go (filter (\c -> elem c "NESW()|^$") s) [] where
     go "" r = reverse r
     go s r = let (e, s') = consumeElement s in go s' (e:r)
 
+-- Computing
+
+move :: Direction -> Coord -> Coord
+move North c = above c
+move East c = right c
+move South c = below c
+move West c = left c
+
+constructMap :: Route -> Map
+constructMap r = go r (fromList [((Coord 0 0), Start)]) (Coord 0 0) where
+    go [] m c = m
+    go (Step d:r') m c = let mv = move d in go r' (addObject (mv $ mv c) Room $ addObject (mv c) Door m) (mv $ mv c)
+    go (Path es:r') m c = go r' (go es m c) c
+    go (Choices cs:r') m c = go r' (foldl (\m e -> go [e] m c) m cs) c
+
+fillMap :: Map -> Map
+fillMap m = foldl (\m c -> addObjectIfEmpty c Wall m) m $ [Coord x y | x <- [minX..maxX], y <- [minY..maxY]] where
+    minX = (\x -> x - 1) $ minimum $ map coordX cs
+    maxX = (\x -> x + 1) $ maximum $ map coordX cs
+    minY = (\x -> x - 1) $ minimum $ map coordY cs
+    maxY = (\x -> x + 1) $ maximum $ map coordY cs
+    cs = map fst $ toList m
+
 solve :: Route -> Int
 solve r = 0
 
-debug = id
+debug = drawPlane drawObject . fillMap . constructMap
 
 main :: IO()
-main = interact (show . debug . parse)
+main = interact (debug . parse)
