@@ -1,4 +1,4 @@
-import Day16
+import ElfScript
 
 parseExample :: [String] -> Example
 parseExample (b:o:a:ls) = Example b' o' a' where
