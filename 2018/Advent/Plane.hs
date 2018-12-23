@@ -38,6 +38,9 @@ toList = Map.toList . objects
 filterPlane :: (Coord -> a -> Bool) -> Plane a -> Plane a
 filterPlane pred p = Plane (Map.filterWithKey pred $ objects p)
 
+mapPlane :: (a -> b) -> Plane a -> Plane b
+mapPlane f = fromList . map (\(c,o) -> (c, f o)) . toList
+
 coordX :: Coord -> Int
 coordX (Coord x _) = x
 
