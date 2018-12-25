@@ -41,12 +41,15 @@ damageDealt atk def | elem (attackType atk) (immunities def) = 0
     d = effectivePower atk
 
 selectTarget :: Group -> [Int] -> [Group] -> (Maybe Int, [Int])
-selectTarget atk ixs groups = if null tgts || damageDealt atk (snd tgt) == 0 then (Nothing, ixs) else (Just $ fst tgt, filter (/= fst tgt) ixs) where
-    tgt = head $ sortBy (comparing (negate . damageDealt atk . snd) `mappend` comparing (negate . effectivePower . snd) `mappend` comparing (negate . initiative . snd)) tgts
+selectTarget atk ixs groups = if shouldAttack then (Nothing, ixs) else (Just $ fst tgt, filter (/= fst tgt) ixs) where
+    shouldAttack = null tgts || damageDealt atk (snd tgt) == 0
+    tgt = head $ sortBy ordering tgts
+    ordering = comparing (negate . damageDealt atk . snd) <> comparing (negate . effectivePower . snd) <> comparing (negate . initiative . snd)
     tgts = filter (\(ix,g) -> team g /= team atk) $ map (\ix -> (ix, groups !! ix)) ixs
 
 selectTargets :: [Group] -> [(Int, Int)]
-selectTargets gs = map (\(a,mb) -> (a,fromJust mb)) $ filter (isJust . snd) $ go (sortBy (comparing (negate . effectivePower . snd) `mappend` comparing (negate . initiative . snd)) (zip [0..] gs)) [] (map fst $ zip [0..] gs) where
+selectTargets gs = map (\(a,mb) -> (a,fromJust mb)) $ filter (isJust . snd) $ go (sortBy ordering (zip [0..] gs)) [] (map fst $ zip [0..] gs) where
+    ordering = comparing (negate . effectivePower . snd) <> comparing (negate . initiative . snd)
     go [] pairs _ = pairs
     go (g:gs') pairs available = let (t,a') = selectTarget (snd g) available gs in go gs' ((fst g,t):pairs) a'
 
