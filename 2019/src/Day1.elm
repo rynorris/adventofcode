@@ -1,6 +1,11 @@
-module Day1 exposing (Model, Msg, init, update, view)
+module Day1 exposing (Model, Msg, init, name, update, view)
 
 import Html exposing (Html, div, text)
+
+import Components as C
+
+
+name = "Day 1"
 
 
 type alias Model =
@@ -26,4 +31,8 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div [] [ text "CHALLENGE 1" ]
+    div []
+    [ C.title name
+    , C.section "Part A" [ text "The solution to part A" ]
+    , C.section "Part B" [ text "The solution to part B" ]
+    ]

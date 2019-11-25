@@ -65,8 +65,8 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "flex w-100 vh-100 items-center justify-center pa4 bg-washed-green" ]
-    [ div [ class "flex w-100 h-100 mw8 shadow-2 bg-near-white" ]
+    div [ class "flex w-100 vh-100 items-center justify-center pa4 bg-washed-green sans-serif" ]
+    [ div [ class "flex w-100 h-100 mw8 shadow-2 bg-white" ]
         [ Html.node "link" [ rel "stylesheet", href "https://unpkg.com/tachyons@4.10.0/css/tachyons.min.css" ] []
         , div [ class "w5 h-100 br bw1 b--light-red" ]
             [ menuItem Day1Id model.selectedChallengeId
@@ -97,5 +97,5 @@ renderProblem model
 challengeName : ChallengeId -> String
 challengeName id
     = case id of
-        Day1Id -> "Day 1"
+        Day1Id -> Day1.name
         Day2Id -> "Day 2"
