@@ -66,13 +66,13 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div [ class "flex w-100 vh-100 items-center justify-center pa4 bg-washed-green sans-serif" ]
-    [ div [ class "flex w-100 h-100 mw8 shadow-2 bg-white" ]
+    [ div [ class "flex w-100 h-100 mw8 shadow-2 br3 bg-white" ]
         [ Html.node "link" [ rel "stylesheet", href "https://unpkg.com/tachyons@4.10.0/css/tachyons.min.css" ] []
-        , div [ class "w5 h-100 br bw1 b--light-red" ]
+        , div [ class "w5 h-100 br bw1 b--black-10" ]
             [ menuItem Day1Id model.selectedChallengeId
             , menuItem Day2Id model.selectedChallengeId
             ]
-        , div [ class "w-100 h-100 pa2" ] [ renderProblem model ]
+        , div [ class "w-100 h-100 pa2 overflow-auto" ] [ renderProblem model ]
         ]
     ]
 
@@ -84,7 +84,7 @@ menuItem challenge selectedChallengeId =
 
 menuItemClass : ChallengeId -> ChallengeId -> String
 menuItemClass challenge selectedChallengeId
-    = "w-100 pa2 shadow-hover hover-bg-green bb bw1 b--light-red" ++ (if challenge == selectedChallengeId then " bg-light-green" else "")
+    = "w-100 pa2 shadow-hover hover-bg-green bb bw1 b--black-10" ++ (if challenge == selectedChallengeId then " bg-light-green" else "")
 
 
 renderProblem : Model -> Html Msg
@@ -97,5 +97,5 @@ renderProblem model
 challengeName : ChallengeId -> String
 challengeName id
     = case id of
-        Day1Id -> Day1.name
-        Day2Id -> "Day 2"
+        Day1Id -> "1. " ++ Day1.name
+        Day2Id -> "2. " ++ "Day 2 with a really super duper long name"
