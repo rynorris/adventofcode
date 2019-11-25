@@ -72,10 +72,10 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "flex w-100 vh-100 items-center justify-center pa4 bg-washed-green sans-serif" ]
-    [ div [ class "flex w-100 h-100 mw8 shadow-2 br3 bg-white" ]
+    div [ class "flex w-100 vh-100 items-center justify-center pa4 bg-navy moon-gray sans-serif" ]
+    [ div [ class "flex w-100 h-100 mw8 br3 ba b--dark-green" ]
         [ Html.node "link" [ rel "stylesheet", href "https://unpkg.com/tachyons@4.10.0/css/tachyons.min.css" ] []
-        , div [ class "w5 h-100 br bw1 b--black-10" ]
+        , div [ class "w5 h-100 br bw1 b--dark-green" ]
             [ menuItem Day1Id model.selectedChallengeId
             , menuItem Day2Id model.selectedChallengeId
             ]
@@ -91,7 +91,7 @@ menuItem challenge selectedChallengeId =
 
 menuItemClass : ChallengeId -> ChallengeId -> String
 menuItemClass challenge selectedChallengeId
-    = "w-100 pa2 shadow-hover hover-bg-green bb bw1 b--black-10" ++ (if challenge == selectedChallengeId then " bg-light-green" else "")
+    = "w-100 pa2 shadow-hover bb bw1 b--dark-green" ++ (if challenge == selectedChallengeId then " bg-dark-green" else " hover-bg-dark-green")
 
 
 renderProblem : Model -> Html Msg
