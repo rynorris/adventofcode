@@ -40,7 +40,6 @@ init =
     }
 
 
-
 -- UPDATE
 
 
@@ -61,20 +60,19 @@ update msg model =
         { model | day2 = (Day2.update subMsg model.day2) }
 
 
-
 -- VIEW
 
 
 view : Model -> Html Msg
 view model =
-    div [ Html.Attributes.class "flex w-100 vh-100 items-center justify-center pa4 bg-washed-green" ]
-    [ div [ Html.Attributes.class "flex w-100 h-100 mw8 shadow-2 bg-near-white" ]
-        [ Html.node "link" [ Html.Attributes.rel "stylesheet", Html.Attributes.href "https://unpkg.com/tachyons@4.10.0/css/tachyons.min.css" ] []
-        , div [ Html.Attributes.class "w5 h-100 br bw1 b--light-red" ]
+    div [ class "flex w-100 vh-100 items-center justify-center pa4 bg-washed-green" ]
+    [ div [ class "flex w-100 h-100 mw8 shadow-2 bg-near-white" ]
+        [ Html.node "link" [ rel "stylesheet", href "https://unpkg.com/tachyons@4.10.0/css/tachyons.min.css" ] []
+        , div [ class "w5 h-100 br bw1 b--light-red" ]
             [ menuItem Day1Id model.selectedChallengeId
             , menuItem Day2Id model.selectedChallengeId
             ]
-        , div [ Html.Attributes.class "w-100 h-100 pa2" ] [ renderProblem model ]
+        , div [ class "w-100 h-100 pa2" ] [ renderProblem model ]
         ]
     ]
 
