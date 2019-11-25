@@ -1,4 +1,4 @@
-module Exec exposing (Process(..), batch, continue)
+module Exec exposing (Process(..), batch, continue, start)
 
 import Process as P
 import Task
@@ -16,6 +16,14 @@ step process fun =
         NotRunning -> NotRunning
         Running state -> fun state
         Finished state -> Finished state
+
+
+start : Process s -> s -> (s -> Process s) -> (Process s -> msg) -> Cmd msg
+start process init fun unwrap =
+    case process of
+        NotRunning -> Task.perform unwrap (P.sleep 10 |> Task.andThen (\_ -> Task.succeed (step (Running init) fun)))
+        Running _ -> Cmd.none
+        Finished _ -> Task.perform unwrap (P.sleep 10 |> Task.andThen (\_ -> Task.succeed (step (Running init) fun)))
 
 
 continue : Process s -> (s -> Process s) -> (Process s -> msg) -> Cmd msg
