@@ -14,7 +14,7 @@ import Day2
 
 
 main =
-  Browser.sandbox { init = init, update = update, view = view }
+  Browser.element { init = init, update = update, subscriptions = subscriptions, view = view }
 
 
 
@@ -32,12 +32,14 @@ type alias Model =
     }
 
 
-init : Model
-init =
-    { selectedChallengeId = Day1Id
-    , day1 = Day1.init
-    , day2 = Day2.init
-    }
+init : () -> (Model, Cmd Msg)
+init flags =
+    ( { selectedChallengeId = Day1Id
+        , day1 = Day1.init
+        , day2 = Day2.init
+        }
+    , Cmd.none
+    )
 
 
 -- UPDATE
@@ -49,15 +51,20 @@ type Msg
   | Day2 Day2.Msg
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     SelectChallengeId challenge ->
-        { model | selectedChallengeId = challenge }
+        ({ model | selectedChallengeId = challenge }, Cmd.none)
     Day1 subMsg ->
-        { model | day1 = (Day1.update subMsg model.day1) }
+        ({ model | day1 = (Day1.update subMsg model.day1) }, Cmd.none)
     Day2 subMsg ->
-        { model | day2 = (Day2.update subMsg model.day2) }
+        ({ model | day2 = (Day2.update subMsg model.day2) }, Cmd.none)
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.none
 
 
 -- VIEW
