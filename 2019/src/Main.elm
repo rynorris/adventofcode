@@ -57,7 +57,10 @@ update msg model =
     SelectChallengeId challenge ->
         ({ model | selectedChallengeId = challenge }, Cmd.none)
     Day1 subMsg ->
-        ({ model | day1 = (Day1.update subMsg model.day1) }, Cmd.none)
+        let
+            (newDay1, subCmd) = Day1.update subMsg model.day1
+        in
+            ({ model | day1 = newDay1 }, Cmd.map Day1 subCmd)
     Day2 subMsg ->
         ({ model | day2 = (Day2.update subMsg model.day2) }, Cmd.none)
 

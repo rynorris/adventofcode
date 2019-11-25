@@ -1,0 +1,38 @@
+module Exec exposing (Process(..), batch, continue)
+
+import Process as P
+import Task
+import Time
+
+type Process s
+    = NotRunning
+    | Running s
+    | Finished s
+
+
+step : Process s -> (s -> Process s) -> Process s
+step process fun = 
+    case process of
+        NotRunning -> NotRunning
+        Running state -> fun state
+        Finished state -> Finished state
+
+
+continue : Process s -> (s -> Process s) -> (Process s -> msg) -> Cmd msg
+continue process fun unwrap =
+    case process of
+        NotRunning -> Cmd.none
+        Running _ -> Task.perform unwrap (P.sleep 10 |> Task.andThen (\_ -> Task.succeed (step process fun)))
+        Finished _ -> Cmd.none
+
+
+batch : Int -> (s -> Process s) -> s -> Process s
+batch num fun state =
+    if num == 1 then
+        fun state
+    else 
+        let next = fun state in
+            case next of
+                NotRunning -> NotRunning
+                Running newState -> batch (num - 1) fun newState
+                Finished finalState -> Finished finalState
