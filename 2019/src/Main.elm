@@ -4,6 +4,7 @@ import Browser
 import Browser.Navigation as Nav
 import Day1
 import Day2
+import Home
 import Html exposing (Html, button, div, text)
 import Html.Attributes exposing (class, href, rel)
 import Html.Events exposing (onClick)
@@ -31,7 +32,8 @@ main =
 
 
 type PageId
-    = PageDay1
+    = Home
+    | PageDay1
     | PageDay2
 
 
@@ -108,9 +110,10 @@ view model =
     { title = "Advent of Code 2019"
     , body =
         [ div [ class "flex w-100 vh-100 items-center justify-center pa4 bg-near-black moon-gray sans-serif" ]
-            [ div [ class "flex w-100 h-100 mw8 br3 ba b--dark-green overflow-auto" ]
-                [ div [ class "w5 h-100 br bw1 b--dark-green" ]
-                    [ menuItem PageDay1 model
+            [ div [ class "flex w-100 h-100 mw8 br3 ba bw1 b--dark-green collapse overflow-auto" ]
+                [ div [ class "w5 h-100 br bw1 b--dark-green collapse" ]
+                    [ menuItem Home model
+                    , menuItem PageDay1 model
                     , menuItem PageDay2 model
                     ]
                 , div [ class "w-100 h-100 pa2 overflow-auto" ] [ renderPage model ]
@@ -139,6 +142,9 @@ menuItemClass id selectedPageId =
 renderPage : Model -> Html Msg
 renderPage model =
     case model.selectedPageId of
+        Home ->
+            Home.view
+
         PageDay1 ->
             Html.map Day1 (Day1.view model.day1)
 
@@ -149,16 +155,22 @@ renderPage model =
 pageName : PageId -> String
 pageName id =
     case id of
+        Home ->
+            "Home"
+
         PageDay1 ->
-            "1. " ++ Day1.name
+            Day1.name
 
         PageDay2 ->
-            "2. " ++ "Day 2 with a really super duper long name"
+            "Day 2 with a really super duper long name"
 
 
 pageUrl : PageId -> String
 pageUrl id =
     case id of
+        Home ->
+            "/"
+
         PageDay1 ->
             "/day1"
 
@@ -174,7 +186,8 @@ navigateTo id model =
 parser : Parser (PageId -> a) a
 parser =
     Parser.oneOf
-        [ Parser.map PageDay1 (Parser.s "day1")
+        [ Parser.map Home Parser.top
+        , Parser.map PageDay1 (Parser.s "day1")
         , Parser.map PageDay2 (Parser.s "day2")
         ]
 
