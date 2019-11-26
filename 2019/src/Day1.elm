@@ -95,7 +95,7 @@ view model =
             [ text "The solution to part B"
             , C.link "Click here!" "https://somewhere.com"
             , text "Some more text"
-            , C.problemInput "Input for part B" model.input SetInput
+            , C.largeProblemInput "Enter large input here" model.input SetInput
             ]
         ]
 

@@ -25,7 +25,12 @@ section name children =
 
 problemInput : String -> String -> (String -> msg) -> Html msg
 problemInput txt val action =
-    div [ class "flex" ] [ input [ class "w-100 h2 ma2", placeholder txt, A.value val, onInput action ] [] ]
+    div [ class "flex" ] [ input [ class "w-100 h2 ma3", placeholder txt, A.value val, onInput action ] [] ]
+
+
+largeProblemInput : String -> String -> (String -> msg) -> Html msg
+largeProblemInput txt val action =
+    div [ class "flex" ] [ Html.textarea [ class "w-100 h5 ma3", placeholder txt, A.value val, onInput action ] [] ]
 
 
 progressBar : Int -> Int -> Html msg
