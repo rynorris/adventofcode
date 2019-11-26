@@ -35,7 +35,7 @@ progressBar value max =
 
 runButton : String -> msg -> Html msg
 runButton txt m =
-    Html.a [ class "f4 link br3 ba bw1 mv2 ph4 pv2 dib moon-gray hover-dark-green pointer", onClick m ] [ text txt ]
+    div [ class "f4 link br3 ba bw1 mv2 ph4 pv2 dib moon-gray hover-dark-green pointer", onClick m ] [ text txt ]
 
 
 link : String -> String -> Html msg

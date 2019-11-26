@@ -1,11 +1,14 @@
 module Main exposing (..)
 
 import Browser
+import Browser.Navigation as Nav
 import Day1
 import Day2
 import Html exposing (Html, button, div, text)
 import Html.Attributes exposing (class, href, rel)
 import Html.Events exposing (onClick)
+import Url
+import Url.Parser as Parser exposing (Parser)
 
 
 
@@ -13,7 +16,7 @@ import Html.Events exposing (onClick)
 
 
 main =
-    Browser.element { init = init, update = update, subscriptions = subscriptions, view = view }
+    Browser.application { init = init, update = update, subscriptions = subscriptions, view = view, onUrlChange = UrlChanged, onUrlRequest = LinkClicked }
 
 
 
@@ -26,15 +29,17 @@ type ChallengeId
 
 
 type alias Model =
-    { selectedChallengeId : ChallengeId
+    { key : Nav.Key
+    , selectedChallengeId : ChallengeId
     , day1 : Day1.Model
     , day2 : Day2.Model
     }
 
 
-init : () -> ( Model, Cmd Msg )
-init flags =
-    ( { selectedChallengeId = Day1Id
+init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
+init flags url key =
+    ( { key = key
+      , selectedChallengeId = Maybe.withDefault Day1Id (parseRoute url)
       , day1 = Day1.init
       , day2 = Day2.init
       }
@@ -47,7 +52,9 @@ init flags =
 
 
 type Msg
-    = SelectChallengeId ChallengeId
+    = LinkClicked Browser.UrlRequest
+    | UrlChanged Url.Url
+    | SelectPage ChallengeId
     | Day1 Day1.Msg
     | Day2 Day2.Msg
 
@@ -55,8 +62,19 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        SelectChallengeId challenge ->
-            ( { model | selectedChallengeId = challenge }, Cmd.none )
+        LinkClicked urlRequest ->
+            case urlRequest of
+                Browser.Internal url ->
+                    ( model, Nav.pushUrl model.key (Url.toString url) )
+
+                Browser.External href ->
+                    ( model, Nav.load href )
+
+        UrlChanged url ->
+            ( { model | selectedChallengeId = Maybe.withDefault Day1Id (parseRoute url) }, Cmd.none )
+
+        SelectPage id ->
+            ( { model | selectedChallengeId = id }, navigateTo id model )
 
         Day1 subMsg ->
             let
@@ -78,23 +96,26 @@ subscriptions model =
 -- VIEW
 
 
-view : Model -> Html Msg
+view : Model -> Browser.Document Msg
 view model =
-    div [ class "flex w-100 vh-100 items-center justify-center pa4 bg-near-black moon-gray sans-serif" ]
-        [ div [ class "flex w-100 h-100 mw8 br3 ba b--dark-green overflow-auto" ]
-            [ Html.node "link" [ rel "stylesheet", href "https://unpkg.com/tachyons@4.10.0/css/tachyons.min.css" ] []
-            , div [ class "w5 h-100 br bw1 b--dark-green" ]
-                [ menuItem Day1Id model.selectedChallengeId
-                , menuItem Day2Id model.selectedChallengeId
+    { title = "Advent of Code 2019"
+    , body =
+        [ div [ class "flex w-100 vh-100 items-center justify-center pa4 bg-near-black moon-gray sans-serif" ]
+            [ div [ class "flex w-100 h-100 mw8 br3 ba b--dark-green overflow-auto" ]
+                [ div [ class "w5 h-100 br bw1 b--dark-green" ]
+                    [ menuItem Day1Id model.selectedChallengeId
+                    , menuItem Day2Id model.selectedChallengeId
+                    ]
+                , div [ class "w-100 h-100 pa2 overflow-auto" ] [ renderProblem model ]
                 ]
-            , div [ class "w-100 h-100 pa2 overflow-auto" ] [ renderProblem model ]
             ]
         ]
+    }
 
 
 menuItem : ChallengeId -> ChallengeId -> Html Msg
 menuItem challenge selectedChallengeId =
-    div [ class (menuItemClass challenge selectedChallengeId), onClick (SelectChallengeId challenge) ] [ text (challengeName challenge) ]
+    div [ class (menuItemClass challenge selectedChallengeId), onClick (SelectPage challenge) ] [ text (challengeName challenge) ]
 
 
 menuItemClass : ChallengeId -> ChallengeId -> String
@@ -126,3 +147,31 @@ challengeName id =
 
         Day2Id ->
             "2. " ++ "Day 2 with a really super duper long name"
+
+
+challengeUrl : ChallengeId -> String
+challengeUrl id =
+    case id of
+        Day1Id ->
+            "/day1"
+
+        Day2Id ->
+            "/day2"
+
+
+navigateTo : ChallengeId -> Model -> Cmd Msg
+navigateTo id model =
+    Nav.pushUrl model.key (challengeUrl id)
+
+
+parser : Parser (ChallengeId -> a) a
+parser =
+    Parser.oneOf
+        [ Parser.map Day1Id (Parser.s "day1")
+        , Parser.map Day2Id (Parser.s "day2")
+        ]
+
+
+parseRoute : Url.Url -> Maybe ChallengeId
+parseRoute =
+    Parser.parse parser
