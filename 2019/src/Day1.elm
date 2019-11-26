@@ -83,6 +83,7 @@ viewButtonA model =
         Exec.Paused _ _ -> C.runButton "Continue" (ControlA Exec.Continue)
         Exec.Finished val -> C.runButton "Reset" (ControlA Exec.Reset)
 
+
 viewProgressA : Model -> Html Msg
 viewProgressA model =
     case model.processA of
