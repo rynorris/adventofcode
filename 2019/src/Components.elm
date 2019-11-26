@@ -27,8 +27,8 @@ problemInput txt val action
     
 
 progressBar : Int -> Int -> Html msg
-progressBar value max = progress [ class "w-100 bg-dark-green", A.max (String.fromInt max), A.value (String.fromInt value) ] []
+progressBar value max = progress [ class "w-100 mv2 bg-dark-green", A.max (String.fromInt max), A.value (String.fromInt value) ] []
 
 
-runButton : msg -> Html msg
-runButton m = Html.a [ class "f4 link br3 ba bw1 ph4 pv2 dib moon-gray hover-dark-green pointer", onClick m ] [ text "Run" ]
+runButton : String -> msg -> Html msg
+runButton txt m = Html.a [ class "f4 link br3 ba bw1 mv2 ph4 pv2 dib moon-gray hover-dark-green pointer", onClick m ] [ text txt ]

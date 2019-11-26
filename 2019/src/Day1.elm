@@ -11,7 +11,7 @@ import Exec
 name = "Day 1"
 
 
--- Define Process A
+-- Solve Part A
 type alias StateA = Int
 
 
@@ -26,7 +26,7 @@ stepA state = if state > 1000000 then Exec.Finished state else Exec.Running (sta
 batchA = Exec.batch 10000 stepA
 
 
--- Define Model
+-- UI
 type alias Model =
     { input : String
     , processA : Exec.Process StateA
@@ -40,16 +40,18 @@ init =
 
 type Msg
     = SetInput String
-    | StartA
-    | StepA (Exec.Process StateA)
+    | ControlA (Exec.Action StateA)
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
         SetInput ans -> ({ model | input = ans }, Cmd.none)
-        StartA -> (model, Exec.start model.processA initA batchA StepA)
-        StepA process -> ({ model | processA = process }, Exec.continue process batchA StepA)
+        ControlA action ->
+            let 
+                (nextA, running) = Exec.control model.processA action
+            in
+                ({model | processA = nextA}, if running then Exec.delay (ControlA (Exec.Step batchA)) else Cmd.none)
 
 
 view : Model -> Html Msg
@@ -61,7 +63,10 @@ view model =
         [ text "The solution to part A"
         , C.codeBlock "a_code_snippet()"
         , C.problemInput "Enter problem input here" model.input SetInput
-        , div [ class "h3 flex justify-center items-center" ] [ viewAnswerA model ]
+        , div [ class "flex flex-column justify-center items-center" ]
+            [ viewButtonA model
+            , viewProgressA model
+            ]
         ]
     , C.section "Part B"
         [ text "The solution to part B"
@@ -70,9 +75,18 @@ view model =
     ]
 
 
-viewAnswerA : Model -> Html Msg
-viewAnswerA model =
+viewButtonA : Model -> Html Msg
+viewButtonA model =
     case model.processA of
-        Exec.NotRunning -> C.runButton StartA
+        Exec.NotRunning -> C.runButton "Run" (ControlA (Exec.Start initA))
+        Exec.Running val -> C.runButton "Pause" (ControlA Exec.Pause)
+        Exec.Paused val -> C.runButton "Continue" (ControlA Exec.Continue)
+        Exec.Finished val -> C.runButton "Reset" (ControlA Exec.Reset)
+
+viewProgressA : Model -> Html Msg
+viewProgressA model =
+    case model.processA of
+        Exec.NotRunning -> div [] []
         Exec.Running val -> C.progressBar val 1000000
+        Exec.Paused val -> C.progressBar val 1000000
         Exec.Finished val -> div [ class "f3" ] [ text ("Answer: " ++ String.fromInt(val)) ]
