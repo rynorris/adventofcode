@@ -9,7 +9,7 @@ type alias Model =
 
 
 init : Model
-init = 
+init =
     { answer = "Something" }
 
 
