@@ -16,21 +16,28 @@ import Url.Parser as Parser exposing (Parser)
 
 
 main =
-    Browser.application { init = init, update = update, subscriptions = subscriptions, view = view, onUrlChange = UrlChanged, onUrlRequest = LinkClicked }
+    Browser.application
+        { init = init
+        , update = update
+        , subscriptions = subscriptions
+        , view = view
+        , onUrlChange = UrlChanged
+        , onUrlRequest = LinkClicked
+        }
 
 
 
 -- MODEL
 
 
-type ChallengeId
-    = Day1Id
-    | Day2Id
+type PageId
+    = PageDay1
+    | PageDay2
 
 
 type alias Model =
     { key : Nav.Key
-    , selectedChallengeId : ChallengeId
+    , selectedPageId : PageId
     , day1 : Day1.Model
     , day2 : Day2.Model
     }
@@ -39,7 +46,7 @@ type alias Model =
 init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
     ( { key = key
-      , selectedChallengeId = Maybe.withDefault Day1Id (parseRoute url)
+      , selectedPageId = Maybe.withDefault PageDay1 (parseRoute url)
       , day1 = Day1.init
       , day2 = Day2.init
       }
@@ -54,7 +61,7 @@ init flags url key =
 type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
-    | SelectPage ChallengeId
+    | SelectPage PageId
     | Day1 Day1.Msg
     | Day2 Day2.Msg
 
@@ -71,10 +78,10 @@ update msg model =
                     ( model, Nav.load href )
 
         UrlChanged url ->
-            ( { model | selectedChallengeId = Maybe.withDefault Day1Id (parseRoute url) }, Cmd.none )
+            ( { model | selectedPageId = Maybe.withDefault PageDay1 (parseRoute url) }, Cmd.none )
 
         SelectPage id ->
-            ( { model | selectedChallengeId = id }, navigateTo id model )
+            ( { model | selectedPageId = id }, navigateTo id model )
 
         Day1 subMsg ->
             let
@@ -103,25 +110,25 @@ view model =
         [ div [ class "flex w-100 vh-100 items-center justify-center pa4 bg-near-black moon-gray sans-serif" ]
             [ div [ class "flex w-100 h-100 mw8 br3 ba b--dark-green overflow-auto" ]
                 [ div [ class "w5 h-100 br bw1 b--dark-green" ]
-                    [ menuItem Day1Id model.selectedChallengeId
-                    , menuItem Day2Id model.selectedChallengeId
+                    [ menuItem PageDay1 model
+                    , menuItem PageDay2 model
                     ]
-                , div [ class "w-100 h-100 pa2 overflow-auto" ] [ renderProblem model ]
+                , div [ class "w-100 h-100 pa2 overflow-auto" ] [ renderPage model ]
                 ]
             ]
         ]
     }
 
 
-menuItem : ChallengeId -> ChallengeId -> Html Msg
-menuItem challenge selectedChallengeId =
-    div [ class (menuItemClass challenge selectedChallengeId), onClick (SelectPage challenge) ] [ text (challengeName challenge) ]
+menuItem : PageId -> Model -> Html Msg
+menuItem id model =
+    div [ class (menuItemClass id model.selectedPageId), onClick (SelectPage id) ] [ text (pageName id) ]
 
 
-menuItemClass : ChallengeId -> ChallengeId -> String
-menuItemClass challenge selectedChallengeId =
+menuItemClass : PageId -> PageId -> String
+menuItemClass id selectedPageId =
     "w-100 pa2 shadow-hover bb bw1 b--dark-green"
-        ++ (if challenge == selectedChallengeId then
+        ++ (if id == selectedPageId then
                 " bg-dark-green"
 
             else
@@ -129,49 +136,49 @@ menuItemClass challenge selectedChallengeId =
            )
 
 
-renderProblem : Model -> Html Msg
-renderProblem model =
-    case model.selectedChallengeId of
-        Day1Id ->
+renderPage : Model -> Html Msg
+renderPage model =
+    case model.selectedPageId of
+        PageDay1 ->
             Html.map Day1 (Day1.view model.day1)
 
-        Day2Id ->
+        PageDay2 ->
             Html.map Day2 (Day2.view model.day2)
 
 
-challengeName : ChallengeId -> String
-challengeName id =
+pageName : PageId -> String
+pageName id =
     case id of
-        Day1Id ->
+        PageDay1 ->
             "1. " ++ Day1.name
 
-        Day2Id ->
+        PageDay2 ->
             "2. " ++ "Day 2 with a really super duper long name"
 
 
-challengeUrl : ChallengeId -> String
-challengeUrl id =
+pageUrl : PageId -> String
+pageUrl id =
     case id of
-        Day1Id ->
+        PageDay1 ->
             "/day1"
 
-        Day2Id ->
+        PageDay2 ->
             "/day2"
 
 
-navigateTo : ChallengeId -> Model -> Cmd Msg
+navigateTo : PageId -> Model -> Cmd Msg
 navigateTo id model =
-    Nav.pushUrl model.key (challengeUrl id)
+    Nav.pushUrl model.key (pageUrl id)
 
 
-parser : Parser (ChallengeId -> a) a
+parser : Parser (PageId -> a) a
 parser =
     Parser.oneOf
-        [ Parser.map Day1Id (Parser.s "day1")
-        , Parser.map Day2Id (Parser.s "day2")
+        [ Parser.map PageDay1 (Parser.s "day1")
+        , Parser.map PageDay2 (Parser.s "day2")
         ]
 
 
-parseRoute : Url.Url -> Maybe ChallengeId
+parseRoute : Url.Url -> Maybe PageId
 parseRoute =
     Parser.parse parser
