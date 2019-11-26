@@ -93,6 +93,8 @@ view model =
             ]
         , C.section "Part B"
             [ text "The solution to part B"
+            , C.link "Click here!" "https://somewhere.com"
+            , text "Some more text"
             , C.problemInput "Input for part B" model.input SetInput
             ]
         ]
