@@ -19,11 +19,11 @@ initA : StateA
 initA = 0
 
 
-stepA : StateA -> Exec.Process StateA
-stepA state = if state > 1000000 then Exec.Finished state else Exec.Running (state + 1)
+stepA : Exec.StepFunction StateA
+stepA state = if state > 1000000 then (state, True) else (state + 1, False)
 
 
-batchA = Exec.batch 10000 stepA
+batchSizeA = 10000
 
 
 -- UI
@@ -51,7 +51,7 @@ update msg model =
             let 
                 (nextA, running) = Exec.control model.processA action
             in
-                ({model | processA = nextA}, if running then Exec.delay (ControlA (Exec.Step batchA)) else Cmd.none)
+                ({model | processA = nextA}, if running then Exec.delay (ControlA (Exec.Step batchSizeA)) else Cmd.none)
 
 
 view : Model -> Html Msg
@@ -78,15 +78,15 @@ view model =
 viewButtonA : Model -> Html Msg
 viewButtonA model =
     case model.processA of
-        Exec.NotRunning -> C.runButton "Run" (ControlA (Exec.Start initA))
-        Exec.Running val -> C.runButton "Pause" (ControlA Exec.Pause)
-        Exec.Paused val -> C.runButton "Continue" (ControlA Exec.Continue)
+        Exec.NotRunning -> C.runButton "Run" (ControlA (Exec.Start initA stepA))
+        Exec.Running _ _ -> C.runButton "Pause" (ControlA Exec.Pause)
+        Exec.Paused _ _ -> C.runButton "Continue" (ControlA Exec.Continue)
         Exec.Finished val -> C.runButton "Reset" (ControlA Exec.Reset)
 
 viewProgressA : Model -> Html Msg
 viewProgressA model =
     case model.processA of
         Exec.NotRunning -> div [] []
-        Exec.Running val -> C.progressBar val 1000000
-        Exec.Paused val -> C.progressBar val 1000000
+        Exec.Running val _ -> C.progressBar val 1000000
+        Exec.Paused val _ -> C.progressBar val 1000000
         Exec.Finished val -> div [ class "f3" ] [ text ("Answer: " ++ String.fromInt(val)) ]
