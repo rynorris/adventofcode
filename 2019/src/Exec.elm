@@ -24,27 +24,34 @@ type alias StepFunction s =
     s -> ( s, Bool )
 
 
+
+-- Process State Machine Control
+
+
 control : Process s -> Action s -> ( Process s, Bool )
 control process action =
-    case action of
-        Start state fun ->
-            ( start process state fun, True )
+    case ( process, action ) of
+        ( NotRunning, Start state fun ) ->
+            ( Running state fun, True )
 
-        Step num ->
+        ( Running state fun, Step num ) ->
             let
                 next =
                     batch num process
             in
             ( next, isRunning next )
 
-        Pause ->
-            ( pause process, False )
+        ( Running state fun, Pause ) ->
+            ( Paused state fun, False )
 
-        Continue ->
-            ( continue process, True )
+        ( Paused state fun, Continue ) ->
+            ( Running state fun, True )
 
-        Reset ->
+        ( Finished state, Reset ) ->
             ( NotRunning, False )
+
+        _ ->
+            ( process, False )
 
 
 isRunning : Process s -> Bool
@@ -75,41 +82,6 @@ step process =
             process
 
 
-start : Process s -> s -> StepFunction s -> Process s
-start process init fun =
-    case process of
-        NotRunning ->
-            Running init fun
-
-        _ ->
-            process
-
-
-continue : Process s -> Process s
-continue process =
-    case process of
-        Paused state fun ->
-            Running state fun
-
-        _ ->
-            process
-
-
-pause : Process s -> Process s
-pause process =
-    case process of
-        Running state fun ->
-            Paused state fun
-
-        _ ->
-            process
-
-
-delay : msg -> Cmd msg
-delay bldMsg =
-    Task.perform (\_ -> bldMsg) (P.sleep 10 |> Task.andThen (\_ -> Task.succeed ()))
-
-
 batch : Int -> Process s -> Process s
 batch num process =
     if num == 0 then
@@ -126,3 +98,8 @@ batch num process =
 
             _ ->
                 next
+
+
+delay : msg -> Cmd msg
+delay bldMsg =
+    Task.perform (\_ -> bldMsg) (P.sleep 10 |> Task.andThen (\_ -> Task.succeed ()))
