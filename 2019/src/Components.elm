@@ -18,7 +18,7 @@ codeBlock code =
 section : String -> List (Html msg) -> Html msg
 section name children =
     div [ class "mv4 br3 ba bw1 b--dark-green" ]
-        [ div [ class "f4 bg-dark-green moon-gray br3 br--top pa2" ] [ text name ]
+        [ div [ class "f4 bg-dark-green moon-gray pa2" ] [ text name ]
         , div [ class "bt b--dark-green pa2" ] children
         ]
 
