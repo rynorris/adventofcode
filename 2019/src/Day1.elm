@@ -2,6 +2,7 @@ module Day1 exposing (Model, Msg, init, name, update, view)
 
 import Components as C
 import Exec
+import Grid
 import Html exposing (Html, button, div, input, progress, text)
 import Html.Attributes as A exposing (class)
 import Html.Events exposing (onClick)
@@ -95,9 +96,29 @@ view model =
             [ text "The solution to part B"
             , C.link "Click here!" "https://somewhere.com"
             , text "Some more text"
+            , Grid.drawHtml testDraw Grid.sample
             , C.largeProblemInput "Enter large input here" model.input SetInput
             ]
         ]
+
+
+testDraw : Maybe Int -> Html Msg
+testDraw x =
+    case x of
+        Just 1 ->
+            div [ class "bg-red" ] []
+
+        Just 2 ->
+            div [ class "bg-blue" ] []
+
+        Just 3 ->
+            div [ class "bg-yellow" ] []
+
+        Just _ ->
+            div [ class "bg-green" ] []
+
+        Nothing ->
+            div [] []
 
 
 viewButtonA : Model -> Html Msg
