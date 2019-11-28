@@ -106,16 +106,16 @@ testDraw : Maybe Int -> Html Msg
 testDraw x =
     case x of
         Just 1 ->
-            div [ class "bg-red" ] []
+            Grid.drawHtmlCell "red" "1"
 
         Just 2 ->
-            div [ class "bg-blue" ] []
+            Grid.drawHtmlCell "blue" "2"
 
         Just 3 ->
-            div [ class "bg-yellow" ] []
+            Grid.drawHtmlCell "orange" "3"
 
         Just _ ->
-            div [ class "bg-green" ] []
+            Grid.drawHtmlCell "green" "4"
 
         Nothing ->
             div [] []

@@ -1,7 +1,7 @@
 module Grid exposing (..)
 
 import Dict exposing (Dict)
-import Html exposing (Html, div)
+import Html exposing (Html, div, text)
 import Html.Attributes as A exposing (class)
 
 
@@ -22,7 +22,7 @@ drawHtml : (Maybe obj -> Html msg) -> Grid obj -> Html msg
 drawHtml drawOne =
     let
         drawObj =
-            drawOne >> List.singleton >> div [ class "ba b--moon-gray h2 w2" ]
+            drawOne >> List.singleton >> div [ class "ba b--moon-gray h2 w2 flex justify-center items-center" ]
 
         packRow =
             div [ class "flex flex-row" ]
@@ -31,6 +31,11 @@ drawHtml drawOne =
             div [ class "flex flex-column" ]
     in
     draw drawObj packRow packOutput
+
+
+drawHtmlCell : String -> String -> Html msg
+drawHtmlCell colour txt =
+    div [ class ("w-100 h-100 flex items-center justify-center bg-" ++ colour) ] [ text txt ]
 
 
 draw : (Maybe obj -> element) -> (List element -> row) -> (List row -> out) -> Grid obj -> out
