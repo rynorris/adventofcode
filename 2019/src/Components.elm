@@ -63,3 +63,10 @@ runButton txt m =
 link : String -> String -> Html msg
 link txt url =
     Html.a [ class "link dark-green mh1", A.href url ] [ text txt ]
+
+
+adventOfCodeProblemLink : Int -> Int -> Html msg
+adventOfCodeProblemLink year day =
+    div []
+        [ link ("View " ++ String.fromInt year ++ " day " ++ String.fromInt day ++ " puzzle details here.") ("https://adventofcode.com/" ++ String.fromInt year ++ "/day/" ++ String.fromInt day)
+        ]

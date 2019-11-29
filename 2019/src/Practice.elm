@@ -134,6 +134,7 @@ view model =
     div []
         [ C.title name
         , text "As a practice test of my elm infrastructure, I am re-solving Day 1 from 2018s AoC"
+        , C.adventOfCodeProblemLink 2018 1
         , C.largeProblemInput "Paste input here" model.input SetInput
         , C.section "Part A"
             [ text "Part A is just computing a simple sum of the input integers."
