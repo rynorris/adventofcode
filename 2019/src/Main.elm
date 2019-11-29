@@ -8,6 +8,7 @@ import Home
 import Html exposing (Html, button, div, text)
 import Html.Attributes exposing (class, href, rel)
 import Html.Events exposing (onClick)
+import Practice
 import Url
 import Url.Parser as Parser exposing (Parser)
 
@@ -33,6 +34,7 @@ main =
 
 type PageId
     = Home
+    | PagePractice
     | PageDay1
     | PageDay2
 
@@ -40,6 +42,7 @@ type PageId
 type alias Model =
     { key : Nav.Key
     , selectedPageId : PageId
+    , practice : Practice.Model
     , day1 : Day1.Model
     , day2 : Day2.Model
     }
@@ -49,6 +52,7 @@ init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
     ( { key = key
       , selectedPageId = Maybe.withDefault PageDay1 (parseRoute url)
+      , practice = Practice.init
       , day1 = Day1.init
       , day2 = Day2.init
       }
@@ -64,6 +68,7 @@ type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
     | SelectPage PageId
+    | Practice Practice.Msg
     | Day1 Day1.Msg
     | Day2 Day2.Msg
 
@@ -85,12 +90,19 @@ update msg model =
         SelectPage id ->
             ( { model | selectedPageId = id }, navigateTo id model )
 
+        Practice subMsg ->
+            let
+                ( new, subCmd ) =
+                    Practice.update subMsg model.practice
+            in
+            ( { model | practice = new }, Cmd.map Practice subCmd )
+
         Day1 subMsg ->
             let
-                ( newDay1, subCmd ) =
+                ( new, subCmd ) =
                     Day1.update subMsg model.day1
             in
-            ( { model | day1 = newDay1 }, Cmd.map Day1 subCmd )
+            ( { model | day1 = new }, Cmd.map Day1 subCmd )
 
         Day2 subMsg ->
             ( { model | day2 = Day2.update subMsg model.day2 }, Cmd.none )
@@ -113,6 +125,7 @@ view model =
             [ div [ class "flex w-100 h-100 mw8 br3 ba bw1 b--dark-green collapse overflow-auto" ]
                 [ div [ class "w5 h-100 br bw1 b--dark-green collapse" ]
                     [ menuItem Home model
+                    , menuItem PagePractice model
                     , menuItem PageDay1 model
                     , menuItem PageDay2 model
                     ]
@@ -145,6 +158,9 @@ renderPage model =
         Home ->
             Home.view
 
+        PagePractice ->
+            Html.map Practice (Practice.view model.practice)
+
         PageDay1 ->
             Html.map Day1 (Day1.view model.day1)
 
@@ -158,6 +174,9 @@ pageName id =
         Home ->
             "Home"
 
+        PagePractice ->
+            Practice.name
+
         PageDay1 ->
             Day1.name
 
@@ -170,6 +189,9 @@ pageUrl id =
     case id of
         Home ->
             "/"
+
+        PagePractice ->
+            "/practice"
 
         PageDay1 ->
             "/day1"
@@ -187,6 +209,7 @@ parser : Parser (PageId -> a) a
 parser =
     Parser.oneOf
         [ Parser.map Home Parser.top
+        , Parser.map PagePractice (Parser.s "practice")
         , Parser.map PageDay1 (Parser.s "day1")
         , Parser.map PageDay2 (Parser.s "day2")
         ]

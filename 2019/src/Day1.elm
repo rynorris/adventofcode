@@ -66,16 +66,10 @@ update msg model =
 
         ControlA action ->
             let
-                ( nextA, running ) =
-                    Exec.control model.processA action
+                ( nextA, cmd ) =
+                    Exec.control model.processA action (ControlA (Exec.Step batchSizeA))
             in
-            ( { model | processA = nextA }
-            , if running then
-                Exec.delay (ControlA (Exec.Step batchSizeA))
-
-              else
-                Cmd.none
-            )
+            ( { model | processA = nextA }, cmd )
 
 
 view : Model -> Html Msg
@@ -88,7 +82,7 @@ view model =
             , C.codeBlock "a_code_snippet()"
             , C.problemInput "Enter problem input here" model.input SetInput
             , div [ class "flex flex-column justify-center items-center" ]
-                [ viewButtonA model
+                [ C.controlProcessButton model.processA ControlA initA stepA
                 , viewProgressA model
                 ]
             ]
@@ -119,22 +113,6 @@ testDraw x =
 
         Nothing ->
             div [] []
-
-
-viewButtonA : Model -> Html Msg
-viewButtonA model =
-    case model.processA of
-        Exec.NotRunning ->
-            C.runButton "Run" (ControlA (Exec.Start initA stepA))
-
-        Exec.Running _ _ ->
-            C.runButton "Pause" (ControlA Exec.Pause)
-
-        Exec.Paused _ _ ->
-            C.runButton "Continue" (ControlA Exec.Continue)
-
-        Exec.Finished val ->
-            C.runButton "Reset" (ControlA Exec.Reset)
 
 
 viewProgressA : Model -> Html Msg

@@ -28,30 +28,36 @@ type alias StepFunction s =
 -- Process State Machine Control
 
 
-control : Process s -> Action s -> ( Process s, Bool )
-control process action =
+control : Process s -> Action s -> msg -> ( Process s, Cmd msg )
+control process action continue =
     case ( process, action ) of
         ( NotRunning, Start state fun ) ->
-            ( Running state fun, True )
+            ( Running state fun, delay continue )
 
         ( Running state fun, Step num ) ->
             let
                 next =
                     batch num process
             in
-            ( next, isRunning next )
+            ( next
+            , if isRunning next then
+                delay continue
+
+              else
+                Cmd.none
+            )
 
         ( Running state fun, Pause ) ->
-            ( Paused state fun, False )
+            ( Paused state fun, Cmd.none )
 
         ( Paused state fun, Continue ) ->
-            ( Running state fun, True )
+            ( Running state fun, delay continue )
 
         ( Finished state, Reset ) ->
-            ( NotRunning, False )
+            ( NotRunning, Cmd.none )
 
         _ ->
-            ( process, False )
+            ( process, Cmd.none )
 
 
 isRunning : Process s -> Bool

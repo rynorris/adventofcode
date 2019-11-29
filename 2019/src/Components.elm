@@ -1,5 +1,6 @@
 module Components exposing (..)
 
+import Exec
 import Html exposing (Html, div, input, progress, text)
 import Html.Attributes as A exposing (class, placeholder)
 import Html.Events exposing (onClick, onInput)
@@ -36,6 +37,22 @@ largeProblemInput txt val action =
 progressBar : Int -> Int -> Html msg
 progressBar value max =
     progress [ class "w-100 mv2 bg-dark-green", A.max (String.fromInt max), A.value (String.fromInt value) ] []
+
+
+controlProcessButton : Exec.Process a -> (Exec.Action a -> msg) -> a -> Exec.StepFunction a -> Html msg
+controlProcessButton process control init step =
+    case process of
+        Exec.NotRunning ->
+            runButton "Run" (control (Exec.Start init step))
+
+        Exec.Running _ _ ->
+            runButton "Pause" (control Exec.Pause)
+
+        Exec.Paused _ _ ->
+            runButton "Continue" (control Exec.Continue)
+
+        Exec.Finished val ->
+            runButton "Reset" (control Exec.Reset)
 
 
 runButton : String -> msg -> Html msg
