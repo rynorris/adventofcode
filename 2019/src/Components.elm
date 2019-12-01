@@ -13,7 +13,7 @@ title txt =
 
 codeBlock : String -> Html msg
 codeBlock code =
-    div [ class "f5 code bg-moon-gray dark-green pa1 ma2" ] [ Html.pre [] [ text code ] ]
+    Html.pre [ class "f5 h5 overflow-auto mh5 code bg-moon-gray dark-green pa1 ma2" ] [ text code ]
 
 
 section : String -> List (Html msg) -> Html msg

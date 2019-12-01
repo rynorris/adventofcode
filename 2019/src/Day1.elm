@@ -1,4 +1,4 @@
-module Day1 exposing (Model, Msg, init, name, update, view)
+module Day1 exposing (Model, Msg, init, initAction, name, update, view)
 
 import Advent
 import Components as C
@@ -97,6 +97,10 @@ init =
     Advent.init
 
 
+initAction =
+    Advent.loadSourceFile "Day1.elm"
+
+
 type alias Msg =
     Advent.Msg StateA StateB
 
@@ -117,7 +121,7 @@ view model =
         , C.largeProblemInput "Enter input here" model.input Advent.SetInput
         , C.section "Part A"
             [ text "Here we simply map the formula over the list and sum the results."
-            , C.codeBlock codeSnippetA
+            , Advent.viewPartASource model
             , div [ class "flex flex-column justify-center items-center" ]
                 [ C.controlProcessButton model.processA Advent.ControlA (initA model.input) stepA
                 , viewProgressA model
@@ -125,7 +129,7 @@ view model =
             ]
         , C.section "Part B"
             [ text "Here we define a recursive version of the original function to take into account the fuel mass as well.  Then as before, map and sum."
-            , C.codeBlock codeSnippetB
+            , Advent.viewPartBSource model
             , div [ class "flex flex-column justify-center items-center" ]
                 [ C.controlProcessButton model.processB Advent.ControlB (initB model.input) stepB
                 , viewProgressB model
@@ -133,25 +137,6 @@ view model =
             ]
         , C.sourceCodeLink "Day1.elm"
         ]
-
-
-codeSnippetA =
-    """fuel : Int -> Int
-fuel m =
-    max ((m // 3) - 2) 0
-"""
-
-
-codeSnippetB =
-    """fuelRec : Int -> Int
-fuelRec m =
-    case fuel m of
-        0 ->
-            0
-
-        f ->
-            f + fuelRec f
-"""
 
 
 viewProgressA : Model -> Html Msg

@@ -1,4 +1,4 @@
-module Practice exposing (Model, Msg, init, name, update, view)
+module Practice exposing (Model, Msg, init, initAction, name, update, view)
 
 import Advent
 import Components as C
@@ -39,6 +39,10 @@ type StateA
 initA : String -> StateA
 initA =
     parseInput >> InputA
+
+
+initAction =
+    Advent.loadSourceFile "Practice.elm"
 
 
 stepA : Exec.StepFunction StateA
@@ -117,6 +121,7 @@ view model =
         , C.largeProblemInput "Paste input here" model.input Advent.SetInput
         , C.section "Part A"
             [ text "Part A is just computing a simple sum of the input integers."
+            , Advent.viewPartASource model
             , div [ class "flex flex-column justify-center items-center" ]
                 [ C.controlProcessButton model.processA Advent.ControlA (initA model.input) stepA
                 , viewProgressA model
@@ -124,6 +129,7 @@ view model =
             ]
         , C.section "Part B"
             [ text "For part B we continue iterating through the input, keeping a Set of all the frequencies we've seen until we find a duplicate."
+            , Advent.viewPartBSource model
             , div [ class "flex flex-column justify-center items-center" ]
                 [ C.controlProcessButton model.processB Advent.ControlB (initB model.input) stepB
                 , viewProgressB model

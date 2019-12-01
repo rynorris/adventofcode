@@ -1,5 +1,6 @@
 module Main exposing (..)
 
+import Advent
 import Browser
 import Browser.Navigation as Nav
 import Day1
@@ -47,12 +48,16 @@ type alias Model =
 
 init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
+    let
+        pageId =
+            Maybe.withDefault Home (parseRoute url)
+    in
     ( { key = key
-      , selectedPageId = Maybe.withDefault PageDay1 (parseRoute url)
+      , selectedPageId = pageId
       , practice = Practice.init
       , day1 = Day1.init
       }
-    , Cmd.none
+    , initAction pageId
     )
 
 
@@ -182,9 +187,25 @@ pageUrl id =
             "/day1"
 
 
+initAction : PageId -> Cmd Msg
+initAction id =
+    case id of
+        Home ->
+            Cmd.none
+
+        PagePractice ->
+            Practice.initAction |> Cmd.map Practice
+
+        PageDay1 ->
+            Day1.initAction |> Cmd.map Day1
+
+
 navigateTo : PageId -> Model -> Cmd Msg
 navigateTo id model =
-    Nav.pushUrl model.key (pageUrl id)
+    Cmd.batch
+        [ Nav.pushUrl model.key (pageUrl id)
+        , initAction id
+        ]
 
 
 parser : Parser (PageId -> a) a
