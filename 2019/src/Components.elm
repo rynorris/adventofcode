@@ -1,9 +1,10 @@
 module Components exposing (..)
 
 import Exec
-import Html exposing (Html, div, input, progress, text)
+import Html exposing (Html, code, div, input, pre, progress, text)
 import Html.Attributes as A exposing (class, placeholder)
 import Html.Events exposing (onClick, onInput)
+import SyntaxHighlight exposing (elm, monokai, toBlockHtml, useTheme)
 
 
 title : String -> Html msg
@@ -12,8 +13,14 @@ title txt =
 
 
 codeBlock : String -> Html msg
-codeBlock code =
-    Html.pre [ class "f5 h5 overflow-auto mh5 code bg-moon-gray dark-green pa1 ma2" ] [ text code ]
+codeBlock src =
+    div [ class "h5 mh2 overflow-auto" ]
+        [ useTheme monokai
+        , elm src
+            |> Result.map (toBlockHtml (Just 1))
+            |> Result.withDefault
+                (pre [] [ code [] [ text src ] ])
+        ]
 
 
 section : String -> List (Html msg) -> Html msg
