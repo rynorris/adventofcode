@@ -1,11 +1,12 @@
 module Day1 exposing (Model, Msg, init, name, update, view)
 
+import Advent
 import Components as C
 import Exec
-import Grid
 import Html exposing (Html, button, div, input, progress, text)
 import Html.Attributes as A exposing (class)
 import Html.Events exposing (onClick)
+import Set exposing (Set)
 
 
 name =
@@ -16,116 +17,83 @@ name =
 -- Solve Part A
 
 
-type alias StateA =
-    Int
+type StateA
+    = InProgressA
+    | AnswerA
 
 
-initA : StateA
-initA =
-    0
+initA : String -> StateA
+initA s =
+    InProgressA
 
 
 stepA : Exec.StepFunction StateA
 stepA state =
-    if state > 1000000 then
-        ( state, True )
-
-    else
-        ( state + 1, False )
-
-
-batchSizeA =
-    10000
+    ( AnswerA, True )
 
 
 
--- UI
+-- Solve Part B
+
+
+type StateB
+    = InProgressB
+    | AnswerB
+
+
+initB : String -> StateB
+initB s =
+    InProgressB
+
+
+stepB : Exec.StepFunction StateB
+stepB state =
+    ( AnswerB, True )
+
+
+
+-- Model
 
 
 type alias Model =
-    { input : String
-    , processA : Exec.Process StateA
-    }
+    Advent.Model StateA StateB
 
 
-init : Model
 init =
-    { input = "", processA = Exec.NotRunning }
+    Advent.init
 
 
-type Msg
-    = SetInput String
-    | ControlA (Exec.Action StateA)
+type alias Msg =
+    Advent.Msg StateA StateB
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-        SetInput ans ->
-            ( { model | input = ans }, Cmd.none )
+update =
+    Advent.update
 
-        ControlA action ->
-            let
-                ( nextA, cmd ) =
-                    Exec.control model.processA action (ControlA (Exec.Step batchSizeA))
-            in
-            ( { model | processA = nextA }, cmd )
+
+
+-- View
 
 
 view : Model -> Html Msg
 view model =
     div []
         [ C.title name
-        , text "Some notes on my solution to this problem."
+        , text "The solution to this problem will go live 24 hours after the problem closes."
         , C.section "Part A"
-            [ text "The solution to part A"
-            , C.codeBlock "a_code_snippet()"
-            , C.problemInput "Enter problem input here" model.input SetInput
-            , div [ class "flex flex-column justify-center items-center" ]
-                [ C.controlProcessButton model.processA ControlA initA stepA
-                , viewProgressA model
-                ]
+            [ text "Coming soon!"
             ]
         , C.section "Part B"
-            [ text "The solution to part B"
-            , C.link "Click here!" "https://somewhere.com"
-            , text "Some more text"
-            , Grid.drawHtml testDraw Grid.sample
-            , C.largeProblemInput "Enter large input here" model.input SetInput
+            [ text "Coming soon!"
             ]
         ]
 
 
-testDraw : Maybe Int -> Html Msg
-testDraw x =
-    case x of
-        Just 1 ->
-            Grid.drawHtmlCell "red" "1"
-
-        Just 2 ->
-            Grid.drawHtmlCell "blue" "2"
-
-        Just 3 ->
-            Grid.drawHtmlCell "orange" "3"
-
-        Just _ ->
-            Grid.drawHtmlCell "green" "4"
-
-        Nothing ->
-            div [] []
-
-
 viewProgressA : Model -> Html Msg
 viewProgressA model =
-    case model.processA of
-        Exec.NotRunning ->
-            div [] []
+    div [] []
 
-        Exec.Running val _ ->
-            C.progressBar val 1000000
 
-        Exec.Paused val _ ->
-            C.progressBar val 1000000
-
-        Exec.Finished val ->
-            div [ class "f3" ] [ text ("Answer: " ++ String.fromInt val) ]
+viewProgressB : Model -> Html Msg
+viewProgressB model =
+    div [] []
