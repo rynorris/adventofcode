@@ -10,7 +10,7 @@ import Set exposing (Set)
 
 
 name =
-    "Day 1"
+    "Day 1: The Tyranny of the Rocket Equation"
 
 
 
@@ -113,7 +113,7 @@ view : Model -> Html Msg
 view model =
     div []
         [ C.title name
-        , text "The solution to this problem will go live 24 hours after the problem closes."
+        , C.adventOfCodeProblemLink 2019 1
         , C.largeProblemInput "Enter input here" model.input Advent.SetInput
         , C.section "Part A"
             [ text "Here we simply map the formula over the list and sum the results."
