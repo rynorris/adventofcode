@@ -14,41 +14,75 @@ name =
 
 
 
+-- Common
+
+
+parseInput : String -> List Int
+parseInput =
+    String.words >> List.map (String.toInt >> Maybe.withDefault 0)
+
+
+
 -- Solve Part A
 
 
+fuel : Int -> Int
+fuel m =
+    max ((m // 3) - 2) 0
+
+
 type StateA
-    = InProgressA
-    | AnswerA
+    = InProgressA (List Int)
+    | AnswerA Int
 
 
 initA : String -> StateA
-initA s =
-    InProgressA
+initA =
+    parseInput >> InProgressA
 
 
 stepA : Exec.StepFunction StateA
 stepA state =
-    ( AnswerA, True )
+    case state of
+        InProgressA nums ->
+            ( AnswerA (List.map fuel nums |> List.sum), True )
+
+        _ ->
+            ( state, True )
 
 
 
 -- Solve Part B
 
 
+fuelRec : Int -> Int
+fuelRec m =
+    case fuel m of
+        0 ->
+            0
+
+        f ->
+            f + fuelRec f
+
+
 type StateB
-    = InProgressB
-    | AnswerB
+    = InProgressB (List Int)
+    | AnswerB Int
 
 
 initB : String -> StateB
-initB s =
-    InProgressB
+initB =
+    parseInput >> InProgressB
 
 
 stepB : Exec.StepFunction StateB
 stepB state =
-    ( AnswerB, True )
+    case state of
+        InProgressB nums ->
+            ( AnswerB (List.map fuelRec nums |> List.sum), True )
+
+        _ ->
+            ( state, True )
 
 
 
@@ -80,21 +114,71 @@ view model =
     div []
         [ C.title name
         , text "The solution to this problem will go live 24 hours after the problem closes."
+        , C.largeProblemInput "Enter input here" model.input Advent.SetInput
         , C.section "Part A"
-            [ text "Coming soon!"
+            [ text "Here we simply map the formula over the list and sum the results."
+            , C.codeBlock codeSnippetA
+            , div [ class "flex flex-column justify-center items-center" ]
+                [ C.controlProcessButton model.processA Advent.ControlA (initA model.input) stepA
+                , viewProgressA model
+                ]
             ]
         , C.section "Part B"
-            [ text "Coming soon!"
+            [ text "Here we define a recursive version of the original function to take into account the fuel mass as well.  Then as before, map and sum."
+            , C.codeBlock codeSnippetB
+            , div [ class "flex flex-column justify-center items-center" ]
+                [ C.controlProcessButton model.processB Advent.ControlB (initB model.input) stepB
+                , viewProgressB model
+                ]
             ]
         , C.sourceCodeLink "Day1.elm"
         ]
 
 
+codeSnippetA =
+    """fuel : Int -> Int
+fuel m =
+    max ((m // 3) - 2) 0
+"""
+
+
+codeSnippetB =
+    """fuelRec : Int -> Int
+fuelRec m =
+    case fuel m of
+        0 ->
+            0
+
+        f ->
+            f + fuelRec f
+"""
+
+
 viewProgressA : Model -> Html Msg
 viewProgressA model =
-    div [] []
+    case model.processA of
+        Exec.Finished state ->
+            case state of
+                AnswerA ans ->
+                    div [] [ text ("The answer is: " ++ String.fromInt ans) ]
+
+                _ ->
+                    div [] []
+
+        _ ->
+            div [] []
 
 
 viewProgressB : Model -> Html Msg
 viewProgressB model =
-    div [] []
+    case model.processB of
+        Exec.Finished state ->
+            case state of
+                AnswerB ans ->
+                    div [] [ text ("The answer is: " ++ String.fromInt ans) ]
+
+                _ ->
+                    div [] []
+
+        _ ->
+            div [] []
