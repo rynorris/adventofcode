@@ -129,6 +129,7 @@ view model =
                 , viewProgressB model
                 ]
             ]
+        , C.sourceCodeLink "Practice.elm"
         ]
 
 

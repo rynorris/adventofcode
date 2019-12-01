@@ -62,11 +62,18 @@ runButton txt m =
 
 link : String -> String -> Html msg
 link txt url =
-    Html.a [ class "link dark-green mh1", A.href url ] [ text txt ]
+    Html.a [ class "link dark-green mh1", A.href url, A.target "_blank" ] [ text txt ]
 
 
 adventOfCodeProblemLink : Int -> Int -> Html msg
 adventOfCodeProblemLink year day =
     div []
         [ link ("View " ++ String.fromInt year ++ " day " ++ String.fromInt day ++ " puzzle details here.") ("https://adventofcode.com/" ++ String.fromInt year ++ "/day/" ++ String.fromInt day)
+        ]
+
+
+sourceCodeLink : String -> Html msg
+sourceCodeLink filename =
+    div []
+        [ link "View the source for this page on GitHub!" ("https://github.com/rynorris/adventofcode/blob/master/2019/src/" ++ filename)
         ]

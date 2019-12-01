@@ -86,6 +86,7 @@ view model =
         , C.section "Part B"
             [ text "Coming soon!"
             ]
+        , C.sourceCodeLink "Day1.elm"
         ]
 
 
