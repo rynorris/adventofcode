@@ -1,4 +1,4 @@
-module Exec exposing (Action(..), Process(..), StepFunction, batch, control, delay)
+module Exec exposing (Action(..), Process(..), StepFunction, control, updateProcess)
 
 import Process as P
 import Task
@@ -26,6 +26,15 @@ type alias StepFunction s =
 
 
 -- Process State Machine Control
+
+
+updateProcess : (mdl -> Process s -> mdl) -> msg -> mdl -> Process s -> Action s -> ( mdl, Cmd msg )
+updateProcess updateModel continue model process action =
+    let
+        ( next, cmd ) =
+            control process action continue
+    in
+    ( updateModel model next, cmd )
 
 
 control : Process s -> Action s -> msg -> ( Process s, Cmd msg )

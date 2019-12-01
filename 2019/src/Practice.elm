@@ -1,5 +1,6 @@
 module Practice exposing (Model, Msg, init, name, update, view)
 
+import Advent
 import Components as C
 import Exec
 import Html exposing (Html, button, div, input, progress, text)
@@ -84,49 +85,27 @@ stepB state =
 
 
 
--- UI and State
+-- Model
 
 
 type alias Model =
-    { input : String
-    , processA : Exec.Process StateA
-    , processB : Exec.Process StateB
-    }
+    Advent.Model StateA StateB
 
 
-init : Model
 init =
-    { input = ""
-    , processA = Exec.NotRunning
-    , processB = Exec.NotRunning
-    }
+    Advent.init
 
 
-type Msg
-    = SetInput String
-    | ControlA (Exec.Action StateA)
-    | ControlB (Exec.Action StateB)
+type alias Msg =
+    Advent.Msg StateA StateB
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-        SetInput ans ->
-            ( { model | input = ans }, Cmd.none )
+update =
+    Advent.update
 
-        ControlA action ->
-            let
-                ( nextA, cmd ) =
-                    Exec.control model.processA action (ControlA (Exec.Step 1))
-            in
-            ( { model | processA = nextA }, cmd )
 
-        ControlB action ->
-            let
-                ( nextB, cmd ) =
-                    Exec.control model.processB action (ControlB (Exec.Step 1000))
-            in
-            ( { model | processB = nextB }, cmd )
+
+-- View
 
 
 view : Model -> Html Msg
@@ -135,18 +114,18 @@ view model =
         [ C.title name
         , text "As a practice test of my elm infrastructure, I am re-solving Day 1 from 2018s AoC"
         , C.adventOfCodeProblemLink 2018 1
-        , C.largeProblemInput "Paste input here" model.input SetInput
+        , C.largeProblemInput "Paste input here" model.input Advent.SetInput
         , C.section "Part A"
             [ text "Part A is just computing a simple sum of the input integers."
             , div [ class "flex flex-column justify-center items-center" ]
-                [ C.controlProcessButton model.processA ControlA (initA model.input) stepA
+                [ C.controlProcessButton model.processA Advent.ControlA (initA model.input) stepA
                 , viewProgressA model
                 ]
             ]
         , C.section "Part B"
             [ text "For part B we continue iterating through the input, keeping a Set of all the frequencies we've seen until we find a duplicate."
             , div [ class "flex flex-column justify-center items-center" ]
-                [ C.controlProcessButton model.processB ControlB (initB model.input) stepB
+                [ C.controlProcessButton model.processB Advent.ControlB (initB model.input) stepB
                 , viewProgressB model
                 ]
             ]
