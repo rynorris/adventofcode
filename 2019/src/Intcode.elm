@@ -33,7 +33,7 @@ type Vm
 
 
 type alias Operation =
-    Vm -> Result String Vm
+    MemoryTape -> Int -> Result String Vm
 
 
 createVm : List Int -> Vm
@@ -80,61 +80,75 @@ intcodeStep : Vm -> Result String Vm
 intcodeStep vm =
     case vm of
         Running tape ip ->
-            case getAbs ip tape of
-                Ok 99 ->
-                    Ok (Halted tape ip)
-
-                Ok 1 ->
-                    doOp intcodeAdd vm
-
-                Ok 2 ->
-                    doOp intcodeMul vm
-
-                Ok x ->
-                    Err ("Unknown opcode: " ++ String.fromInt x)
-
-                Err msg ->
-                    Err msg
+            decodeInstruction tape ip |> Result.andThen (\inst -> executeInstruction inst tape ip)
 
         Halted _ _ ->
             Ok vm
 
 
-doOp : Operation -> Vm -> Result String Vm
-doOp op vm =
-    case vm of
-        Running _ _ ->
-            op vm
 
-        _ ->
-            Ok vm
+-- Define Instructions
 
 
-binaryOp : (Int -> Int -> Int) -> Operation
-binaryOp calc vm =
-    case vm of
-        Running tape ip ->
-            let
-                v1 =
-                    getAbs (ip + 1) tape |> Result.andThen (\ix -> getAbs ix tape)
-
-                v2 =
-                    getAbs (ip + 2) tape |> Result.andThen (\ix -> getAbs ix tape)
-
-                addr =
-                    getAbs (ip + 3) tape
-            in
-            Result.map3 (\x1 x2 a -> Running (setAbs a (calc x1 x2) tape) (ip + 4)) v1 v2 addr
-
-        Halted _ _ ->
-            Ok vm
+type Instruction
+    = Halt
+    | Add Int Int Int
+    | Mul Int Int Int
 
 
-intcodeAdd : Operation
+decodeInstruction : MemoryTape -> Int -> Result String Instruction
+decodeInstruction tape ip =
+    let
+        arg =
+            \n -> getAbs (ip + n) tape
+    in
+    case getAbs ip tape of
+        Ok 99 ->
+            Ok Halt
+
+        Ok 1 ->
+            Result.map3 Add (arg 1) (arg 2) (arg 3)
+
+        Ok 2 ->
+            Result.map3 Mul (arg 1) (arg 2) (arg 3)
+
+        Ok x ->
+            Err ("unknown opcode: " ++ String.fromInt x)
+
+        Err s ->
+            Err ("failed to read opcode: " ++ s)
+
+
+executeInstruction : Instruction -> MemoryTape -> Int -> Result String Vm
+executeInstruction inst tape ip =
+    case inst of
+        Halt ->
+            Ok (Halted tape ip)
+
+        Add a b c ->
+            intcodeAdd a b c tape ip
+
+        Mul a b c ->
+            intcodeMul a b c tape ip
+
+
+binaryOp : (Int -> Int -> Int) -> Int -> Int -> Int -> Operation
+binaryOp calc a1 a2 tgt tape ip =
+    let
+        x1 =
+            getAbs a1 tape
+
+        x2 =
+            getAbs a2 tape
+    in
+    Result.map2 (\x y -> Running (setAbs tgt (calc x y) tape) (ip + 4)) x1 x2
+
+
+intcodeAdd : Int -> Int -> Int -> Operation
 intcodeAdd =
     binaryOp (+)
 
 
-intcodeMul : Operation
+intcodeMul : Int -> Int -> Int -> Operation
 intcodeMul =
     binaryOp (*)
