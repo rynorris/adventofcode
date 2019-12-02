@@ -4,6 +4,7 @@ import Advent
 import Browser
 import Browser.Navigation as Nav
 import Day1
+import Day2
 import Home
 import Html exposing (Html, button, div, text)
 import Html.Attributes exposing (class, href, rel)
@@ -36,6 +37,7 @@ type PageId
     = Home
     | PagePractice
     | PageDay1
+    | PageDay2
 
 
 type alias Model =
@@ -43,6 +45,7 @@ type alias Model =
     , selectedPageId : PageId
     , practice : Practice.Model
     , day1 : Day1.Model
+    , day2 : Day2.Model
     }
 
 
@@ -56,6 +59,7 @@ init flags url key =
       , selectedPageId = pageId
       , practice = Practice.init
       , day1 = Day1.init
+      , day2 = Day2.init
       }
     , initAction pageId
     )
@@ -71,6 +75,7 @@ type Msg
     | SelectPage PageId
     | Practice Practice.Msg
     | Day1 Day1.Msg
+    | Day2 Day2.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -104,6 +109,13 @@ update msg model =
             in
             ( { model | day1 = new }, Cmd.map Day1 subCmd )
 
+        Day2 subMsg ->
+            let
+                ( new, subCmd ) =
+                    Day2.update subMsg model.day2
+            in
+            ( { model | day2 = new }, Cmd.map Day2 subCmd )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -124,6 +136,7 @@ view model =
                     [ menuItem Home model
                     , menuItem PagePractice model
                     , menuItem PageDay1 model
+                    , menuItem PageDay2 model
                     ]
                 , div [ class "w-100 h-100 pa2 overflow-auto" ] [ renderPage model ]
                 ]
@@ -160,6 +173,9 @@ renderPage model =
         PageDay1 ->
             Html.map Day1 (Day1.view model.day1)
 
+        PageDay2 ->
+            Html.map Day2 (Day2.view model.day2)
+
 
 pageName : PageId -> String
 pageName id =
@@ -172,6 +188,9 @@ pageName id =
 
         PageDay1 ->
             Day1.name
+
+        PageDay2 ->
+            Day2.name
 
 
 pageUrl : PageId -> String
@@ -186,6 +205,9 @@ pageUrl id =
         PageDay1 ->
             "/day1"
 
+        PageDay2 ->
+            "/day2"
+
 
 initAction : PageId -> Cmd Msg
 initAction id =
@@ -198,6 +220,9 @@ initAction id =
 
         PageDay1 ->
             Day1.initAction |> Cmd.map Day1
+
+        PageDay2 ->
+            Day2.initAction |> Cmd.map Day2
 
 
 navigateTo : PageId -> Model -> Cmd Msg
@@ -214,6 +239,7 @@ parser =
         [ Parser.map Home Parser.top
         , Parser.map PagePractice (Parser.s "practice")
         , Parser.map PageDay1 (Parser.s "day1")
+        , Parser.map PageDay2 (Parser.s "day2")
         ]
 
 
