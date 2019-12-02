@@ -18,7 +18,7 @@ to learn something new, try a new programming language etc.
 """
         ]
     , Html.p []
-        [ text "For 2019, I decided to write my solutions as an interactive web page using"
+        [ text "For 2019, I decided to write my solutions as an interactive web page using "
         , C.link "elm." "https://elm-lang.org/"
         ]
     ]
@@ -38,7 +38,7 @@ elmBody =
     , Html.p []
         [ text "This means I must fit all of my solutions this year into this state & step model, which may prove challenging." ]
     , Html.p []
-        [ text "You can see the relevant code for this execution model in"
+        [ text "You can see the relevant code for this execution model in "
         , C.link "Exec.elm" "https://github.com/rynorris/adventofcode/blob/master/2019/src/Exec.elm"
         ]
     ]

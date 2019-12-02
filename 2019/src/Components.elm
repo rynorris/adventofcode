@@ -77,7 +77,7 @@ actionButton txt m =
 
 link : String -> String -> Html msg
 link txt url =
-    Html.a [ class "link dark-green mh1", A.href url, A.target "_blank" ] [ text txt ]
+    Html.a [ class "link dark-green", A.href url, A.target "_blank" ] [ text txt ]
 
 
 adventOfCodeProblemLink : Int -> Int -> Html msg
@@ -87,11 +87,14 @@ adventOfCodeProblemLink year day =
         ]
 
 
+githubLink : String -> String -> Html msg
+githubLink txt filename =
+    link txt ("https://github.com/rynorris/adventofcode/blob/master/2019/src/" ++ filename)
+
+
 sourceCodeLink : String -> Html msg
-sourceCodeLink filename =
-    div []
-        [ link "View the source for this page on GitHub!" ("https://github.com/rynorris/adventofcode/blob/master/2019/src/" ++ filename)
-        ]
+sourceCodeLink =
+    githubLink "View the source for this page on GitHub!"
 
 
 partASource : Advent.Model a b -> Html (Advent.Msg a b)

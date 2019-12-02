@@ -16,12 +16,6 @@ name =
     "Day 2: 1202 Program Alarm"
 
 
-exampleInputs : List Advent.ExampleInput
-exampleInputs =
-    [ { name = "Example 1", input = "1,9,10,3,2,3,11,0,99,30,40,50" }
-    ]
-
-
 
 -- Common
 
@@ -155,9 +149,15 @@ view : Model -> Html Msg
 view model =
     div []
         [ C.title name
-        , C.adventOfCodeProblemLink 2019 1
+        , C.adventOfCodeProblemLink 2019 2
+        , Html.p []
+            [ text "We're getting into custom assembly code early this year!  Looks like they're introducing it very slowly though, just a couple of instructions this time.  Looking forward to where this goes."
+            ]
+        , Html.p []
+            [ text "View the source code for my Intcode interpreter "
+            , C.githubLink "on GitHub." "Intcode.elm"
+            ]
         , C.largeProblemInput "Enter input here" model.input Advent.SetInput
-        , C.loadExampleButtons exampleInputs
         , C.section "Part A"
             [ text "Here we have implemented the Intcode VM and run the given program to completion.  Not forgetting to make the gravity substitutions before starting!"
             , C.partASource model
@@ -167,14 +167,14 @@ view model =
                 ]
             ]
         , C.section "Part B"
-            [ text "Here we define a recursive version of the original function to take into account the fuel mass as well.  Then as before, map and sum."
+            [ text "For this part I do a simple brute-force search over all possible values of noun and verb."
             , C.partBSource model
             , div [ class "flex flex-column justify-center items-center" ]
                 [ C.controlProcessButton model.processB Advent.ControlB (initB model.input) stepB
                 , viewProgressB model
                 ]
             ]
-        , C.sourceCodeLink "Day1.elm"
+        , C.sourceCodeLink "Day2.elm"
         ]
 
 
