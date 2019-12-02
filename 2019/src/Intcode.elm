@@ -119,17 +119,37 @@ decodeInstruction tape ip =
             Err ("failed to read opcode: " ++ s)
 
 
-executeInstruction : Instruction -> MemoryTape -> Int -> Result String Vm
-executeInstruction inst tape ip =
+interpretInstruction : Instruction -> Operation
+interpretInstruction inst =
     case inst of
         Halt ->
-            Ok (Halted tape ip)
+            opHalt
 
         Add a b c ->
-            intcodeAdd a b c tape ip
+            opAdd a b c
 
         Mul a b c ->
-            intcodeMul a b c tape ip
+            opMul a b c
+
+
+executeInstruction : Instruction -> MemoryTape -> Int -> Result String Vm
+executeInstruction inst tape ip =
+    interpretInstruction inst |> (\op -> op tape ip)
+
+
+opHalt : Operation
+opHalt tape ip =
+    Ok (Halted tape ip)
+
+
+opAdd : Int -> Int -> Int -> Operation
+opAdd =
+    binaryOp (+)
+
+
+opMul : Int -> Int -> Int -> Operation
+opMul =
+    binaryOp (*)
 
 
 binaryOp : (Int -> Int -> Int) -> Int -> Int -> Int -> Operation
@@ -142,13 +162,3 @@ binaryOp calc a1 a2 tgt tape ip =
             getAbs a2 tape
     in
     Result.map2 (\x y -> Running (setAbs tgt (calc x y) tape) (ip + 4)) x1 x2
-
-
-intcodeAdd : Int -> Int -> Int -> Operation
-intcodeAdd =
-    binaryOp (+)
-
-
-intcodeMul : Int -> Int -> Int -> Operation
-intcodeMul =
-    binaryOp (*)
