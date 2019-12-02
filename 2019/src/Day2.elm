@@ -42,7 +42,7 @@ type StateA
 
 initA : String -> StateA
 initA =
-    parseInput >> Intcode.setAbs 1 12 >> Intcode.setAbs 2 2 >> Intcode.Running >> InProgressA
+    parseInput >> Intcode.setAbs 1 12 >> Intcode.setAbs 2 2 >> (\mem -> Intcode.Running mem 0) >> InProgressA
 
 
 stepA : Exec.StepFunction StateA
@@ -56,10 +56,10 @@ stepA state =
             case step of
                 Ok nextVm ->
                     case nextVm of
-                        Intcode.Running _ ->
+                        Intcode.Running _ _ ->
                             ( InProgressA nextVm, False )
 
-                        Intcode.Halted _ ->
+                        Intcode.Halted _ _ ->
                             ( AnswerA nextVm, True )
 
                 Err _ ->

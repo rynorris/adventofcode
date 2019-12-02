@@ -9,37 +9,15 @@ import Test exposing (..)
 suite : Test
 suite =
     describe "Intcode"
-        [ describe "MemoryTape"
-            [ test "to and from array" <|
-                \_ -> [ 1, 2, 3 ] |> tapeFromList |> tapeToList |> Expect.equal [ 1, 2, 3 ]
-            , test "shift doesn't change values" <|
-                \_ -> [ 1, 2, 3 ] |> tapeFromList |> shiftLeft 2 |> tapeToList |> Expect.equal [ 1, 2, 3 ]
-            , test "shift shifts by the right amount" <|
-                \_ -> [ 1, 2, 3, 4 ] |> tapeFromList |> shiftLeft 2 |> getRel 0 |> Expect.equal (Ok 3)
-            , test "two shifts do the right thing" <|
-                \_ -> [ 1, 2, 3, 4 ] |> tapeFromList |> shiftLeft 2 |> shiftLeft 1 |> tapeToList |> Expect.equal [ 1, 2, 3, 4 ]
-            , test "getAbs works for forward value when at base" <|
-                \_ -> [ 1, 2, 3, 4 ] |> tapeFromList |> getAbs 2 |> Expect.equal (Ok 3)
-            , test "getAbs works for forward value when shifted" <|
-                \_ -> [ 1, 2, 3, 4 ] |> tapeFromList |> shiftLeft 1 |> getAbs 2 |> Expect.equal (Ok 3)
-            , test "getAbs works for backward value" <|
-                \_ -> [ 1, 2, 3, 4 ] |> tapeFromList |> shiftLeft 3 |> getAbs 2 |> Expect.equal (Ok 3)
-            , test "setAbs works for forward value when at base" <|
-                \_ -> [ 1, 2, 3, 4 ] |> tapeFromList |> setAbs 2 99 |> tapeToList |> Expect.equal [ 1, 2, 99, 4 ]
-            , test "setAbs works for forward value when shifted" <|
-                \_ -> [ 1, 2, 3, 4 ] |> tapeFromList |> shiftLeft 1 |> setAbs 2 99 |> tapeToList |> Expect.equal [ 1, 2, 99, 4 ]
-            , test "setAbs works for backward value" <|
-                \_ -> [ 1, 2, 3, 4 ] |> tapeFromList |> shiftLeft 3 |> setAbs 2 99 |> tapeToList |> Expect.equal [ 1, 2, 99, 4 ]
-            ]
-        , describe "Operations"
+        [ describe "Operations"
             [ test "add sets the target cell" <|
                 \_ -> [ 1, 4, 2, 0, 99 ] |> createVm |> doOp intcodeAdd |> Result.andThen (getMemory >> getAbs 0) |> Expect.equal (Ok 101)
             , test "add shifts the IP by 4" <|
-                \_ -> [ 1, 4, 2, 0, 99 ] |> createVm |> doOp intcodeAdd |> Result.andThen (getMemory >> getRel 0) |> Expect.equal (Ok 99)
+                \_ -> [ 1, 4, 2, 0, 99 ] |> createVm |> doOp intcodeAdd |> Result.map getIp |> Expect.equal (Ok 4)
             , test "mul sets the target cell" <|
                 \_ -> [ 1, 4, 2, 0, 99 ] |> createVm |> doOp intcodeMul |> Result.andThen (getMemory >> getAbs 0) |> Expect.equal (Ok (99 * 2))
             , test "mul shifts the IP by 4" <|
-                \_ -> [ 1, 4, 2, 0, 99 ] |> createVm |> doOp intcodeMul |> Result.andThen (getMemory >> getRel 0) |> Expect.equal (Ok 99)
+                \_ -> [ 1, 4, 2, 0, 99 ] |> createVm |> doOp intcodeMul |> Result.map getIp |> Expect.equal (Ok 4)
             ]
         , describe "Vm program flow"
             [ test "just an add" <|
