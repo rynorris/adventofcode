@@ -74,20 +74,50 @@ stepA state =
 
 
 type StateB
-    = InProgressB (List Int)
-    | AnswerB Int
+    = InProgressB (List Int) Int Int
+    | AnswerB Int Int Int
 
 
 initB : String -> StateB
 initB =
-    parseInput >> Intcode.tapeToList >> InProgressB
+    parseInput >> Intcode.tapeToList >> (\code -> InProgressB code 0 0)
+
+
+patchCode : Int -> Int -> Intcode.MemoryTape -> Intcode.MemoryTape
+patchCode n v =
+    Intcode.setAbs 1 n >> Intcode.setAbs 2 v
+
+
+nextGuess : Int -> Int -> ( Int, Int )
+nextGuess n v =
+    case ( n, v ) of
+        ( 99, 99 ) ->
+            ( 0, 0 )
+
+        ( _, 99 ) ->
+            ( n + 1, 0 )
+
+        ( _, _ ) ->
+            ( n, v + 1 )
 
 
 stepB : Exec.StepFunction StateB
 stepB state =
     case state of
-        InProgressB nums ->
-            ( AnswerB (List.map identity nums |> List.sum), True )
+        InProgressB code n v ->
+            let
+                vm =
+                    Intcode.runProgram (code |> Intcode.tapeFromList |> patchCode n v |> Intcode.tapeToList)
+            in
+            case vm |> Result.andThen (List.head >> Result.fromMaybe "No answer") of
+                Ok 19690720 ->
+                    ( AnswerB n v (n * 100 + v), True )
+
+                Ok _ ->
+                    ( nextGuess n v |> (\( n2, v2 ) -> InProgressB code n2 v2), False )
+
+                Err _ ->
+                    ( nextGuess n v |> (\( n2, v2 ) -> InProgressB code n2 v2), False )
 
         _ ->
             ( state, True )
@@ -171,8 +201,24 @@ viewProgressB model =
     case model.processB of
         Exec.Finished state ->
             case state of
-                AnswerB ans ->
-                    div [] [ text ("The answer is: " ++ String.fromInt ans) ]
+                AnswerB n v ans ->
+                    div [] [ text ("Done  -- Noun: " ++ String.fromInt n ++ ", Verb: " ++ String.fromInt v ++ ", Answer: " ++ String.fromInt ans) ]
+
+                _ ->
+                    div [] []
+
+        Exec.Running state _ ->
+            case state of
+                InProgressB _ n v ->
+                    div [] [ text ("Guess -- Noun: " ++ String.fromInt n ++ ", Verb: " ++ String.fromInt v ++ ", Answer: " ++ String.fromInt (n * 100 + v)) ]
+
+                _ ->
+                    div [] []
+
+        Exec.Paused state _ ->
+            case state of
+                InProgressB _ n v ->
+                    div [] [ text ("Guess -- Noun: " ++ String.fromInt n ++ ", Verb: " ++ String.fromInt v ++ ", Answer: " ++ String.fromInt (n * 100 + v) ++ " (Paused)") ]
 
                 _ ->
                     div [] []
