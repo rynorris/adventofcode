@@ -154,10 +154,13 @@ viewProgressA model =
         Exec.Finished state ->
             case state of
                 AnswerA vm ->
-                    div [] [ viewMemoryTape (Intcode.getMemory vm) ]
+                    div []
+                        [ div [ class "f3" ] [ text ("Answer is: " ++ (getMemoryAt 0 vm |> resultToString identity String.fromInt)) ]
+                        , div [ class "h5 overflow-auto" ] [ viewMemoryTape (Intcode.getMemory vm) ]
+                        ]
 
                 InProgressA vm ->
-                    div [] [ viewMemoryTape (Intcode.getMemory vm) ]
+                    div [ class "h5 overflow-auto" ] [ viewMemoryTape (Intcode.getMemory vm) ]
 
         _ ->
             div [] []
@@ -176,6 +179,21 @@ viewProgressB model =
 
         _ ->
             div [] []
+
+
+resultToString : (a -> String) -> (b -> String) -> Result a b -> String
+resultToString mapA mapB res =
+    case res of
+        Err err ->
+            mapA err
+
+        Ok val ->
+            mapB val
+
+
+getMemoryAt : Int -> Intcode.Vm -> Result String Int
+getMemoryAt n vm =
+    vm |> Intcode.getMemory |> Intcode.getAbs n
 
 
 viewMemoryTape : Intcode.MemoryTape -> Html Msg
