@@ -22,7 +22,7 @@ drawHtml : (Maybe obj -> Html msg) -> Grid obj -> Html msg
 drawHtml drawOne =
     let
         drawObj =
-            drawOne >> List.singleton >> div [ class "ba b--moon-gray h2 w2 flex justify-center items-center" ]
+            drawOne >> List.singleton >> div [ class "ba b--moon-gray h3 w3 flex justify-center items-center" ]
 
         packRow =
             div [ class "flex flex-row" ]

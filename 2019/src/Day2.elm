@@ -2,10 +2,13 @@ module Day2 exposing (Model, Msg, init, initAction, name, update, view)
 
 import Advent
 import Components as C
+import Dict exposing (Dict)
 import Exec
+import Grid exposing (Grid)
 import Html exposing (Html, button, div, input, progress, text)
 import Html.Attributes as A exposing (class)
 import Html.Events exposing (onClick)
+import Intcode
 import Set exposing (Set)
 
 
@@ -23,9 +26,9 @@ exampleInputs =
 -- Common
 
 
-parseInput : String -> List Int
+parseInput : String -> Intcode.MemoryTape
 parseInput =
-    String.split "," >> List.map (String.toInt >> Maybe.withDefault 0)
+    String.split "," >> List.map (String.toInt >> Maybe.withDefault 0) >> Intcode.tapeFromList
 
 
 
@@ -33,20 +36,34 @@ parseInput =
 
 
 type StateA
-    = InProgressA (List Int)
-    | AnswerA Int
+    = InProgressA Intcode.Vm
+    | AnswerA Intcode.Vm
 
 
 initA : String -> StateA
 initA =
-    parseInput >> InProgressA
+    parseInput >> Intcode.setAbs 1 12 >> Intcode.setAbs 2 2 >> Intcode.Running >> InProgressA
 
 
 stepA : Exec.StepFunction StateA
 stepA state =
     case state of
-        InProgressA nums ->
-            ( AnswerA (List.map identity nums |> List.sum), True )
+        InProgressA vm ->
+            let
+                step =
+                    Intcode.intcodeStep vm
+            in
+            case step of
+                Ok nextVm ->
+                    case nextVm of
+                        Intcode.Running _ ->
+                            ( InProgressA nextVm, False )
+
+                        Intcode.Halted _ ->
+                            ( AnswerA nextVm, True )
+
+                Err _ ->
+                    ( AnswerA vm, True )
 
         _ ->
             ( state, True )
@@ -56,16 +73,6 @@ stepA state =
 -- Solve Part B
 
 
-fuelRec : Int -> Int
-fuelRec m =
-    case identity m of
-        0 ->
-            0
-
-        f ->
-            f + fuelRec f
-
-
 type StateB
     = InProgressB (List Int)
     | AnswerB Int
@@ -73,14 +80,14 @@ type StateB
 
 initB : String -> StateB
 initB =
-    parseInput >> InProgressB
+    parseInput >> Intcode.tapeToList >> InProgressB
 
 
 stepB : Exec.StepFunction StateB
 stepB state =
     case state of
         InProgressB nums ->
-            ( AnswerB (List.map fuelRec nums |> List.sum), True )
+            ( AnswerB (List.map identity nums |> List.sum), True )
 
         _ ->
             ( state, True )
@@ -99,7 +106,7 @@ init =
 
 
 initAction =
-    Advent.loadSourceFile "Day1.elm"
+    Advent.loadSourceFile "Day2.elm"
 
 
 type alias Msg =
@@ -122,7 +129,7 @@ view model =
         , C.largeProblemInput "Enter input here" model.input Advent.SetInput
         , C.loadExampleButtons exampleInputs
         , C.section "Part A"
-            [ text "Here we simply map the formula over the list and sum the results."
+            [ text "Here we have implemented the Intcode VM and run the given program to completion.  Not forgetting to make the gravity substitutions before starting!"
             , C.partASource model
             , div [ class "flex flex-column justify-center items-center" ]
                 [ C.controlProcessButton model.processA Advent.ControlA (initA model.input) stepA
@@ -146,11 +153,11 @@ viewProgressA model =
     case model.processA of
         Exec.Finished state ->
             case state of
-                AnswerA ans ->
-                    div [] [ text ("The answer is: " ++ String.fromInt ans) ]
+                AnswerA vm ->
+                    div [] [ viewMemoryTape (Intcode.getMemory vm) ]
 
-                _ ->
-                    div [] []
+                InProgressA vm ->
+                    div [] [ viewMemoryTape (Intcode.getMemory vm) ]
 
         _ ->
             div [] []
@@ -169,3 +176,15 @@ viewProgressB model =
 
         _ ->
             div [] []
+
+
+viewMemoryTape : Intcode.MemoryTape -> Html Msg
+viewMemoryTape =
+    Intcode.tapeToList >> listToGrid 10 >> Grid.drawHtml (Maybe.map (String.fromInt >> text) >> Maybe.withDefault (div [] []))
+
+
+listToGrid : Int -> List Int -> Grid Int
+listToGrid w xs =
+    xs
+        |> List.indexedMap (\ix x -> ( ( modBy w ix, ix // w ), x ))
+        |> Dict.fromList
