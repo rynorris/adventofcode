@@ -1,6 +1,5 @@
 module Advent exposing (..)
 
-import Components as C
 import Exec
 import Html exposing (Html)
 import Http
@@ -19,6 +18,12 @@ type alias ProblemSource =
     { common : String
     , partA : String
     , partB : String
+    }
+
+
+type alias ExampleInput =
+    { name : String
+    , input : String
     }
 
 
@@ -60,21 +65,6 @@ update msg model =
                     Exec.control model.processB action (ControlB (Exec.Step 1000))
             in
             ( { model | processB = nextB }, cmd )
-
-
-viewPartASource : Model a b -> Html (Msg a b)
-viewPartASource =
-    viewSourceSegment .partA
-
-
-viewPartBSource : Model a b -> Html (Msg a b)
-viewPartBSource =
-    viewSourceSegment .partB
-
-
-viewSourceSegment : (ProblemSource -> String) -> Model a b -> Html (Msg a b)
-viewSourceSegment segment model =
-    model.source |> Maybe.map segment |> Maybe.map C.codeBlock |> Maybe.withDefault (Html.div [] [])
 
 
 loadSourceFile : String -> Cmd (Msg a b)

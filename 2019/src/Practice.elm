@@ -13,6 +13,23 @@ name =
     "Practice (2018 Day 1)"
 
 
+exampleInputsA : List Advent.ExampleInput
+exampleInputsA =
+    [ { name = "Example A1", input = "+1, +1, +1" }
+    , { name = "Example A2", input = "+1, +1, -2" }
+    , { name = "Example A3", input = "-1, -2, -3" }
+    ]
+
+
+exampleInputsB : List Advent.ExampleInput
+exampleInputsB =
+    [ { name = "Example B1", input = "+1, -1" }
+    , { name = "Example B2", input = "+3, +3, +4, -2, -4" }
+    , { name = "Example B3", input = "-6, +3, +8, +5, -6" }
+    , { name = "Example B4", input = "+7, +7, -2, -7, -4" }
+    ]
+
+
 
 -- Common
 
@@ -119,9 +136,11 @@ view model =
         , text "As a practice test of my elm infrastructure, I am re-solving Day 1 from 2018s AoC"
         , C.adventOfCodeProblemLink 2018 1
         , C.largeProblemInput "Paste input here" model.input Advent.SetInput
+        , C.loadExampleButtons exampleInputsA
+        , C.loadExampleButtons exampleInputsB
         , C.section "Part A"
             [ text "Part A is just computing a simple sum of the input integers."
-            , Advent.viewPartASource model
+            , C.partASource model
             , div [ class "flex flex-column justify-center items-center" ]
                 [ C.controlProcessButton model.processA Advent.ControlA (initA model.input) stepA
                 , viewProgressA model
@@ -129,7 +148,7 @@ view model =
             ]
         , C.section "Part B"
             [ text "For part B we continue iterating through the input, keeping a Set of all the frequencies we've seen until we find a duplicate."
-            , Advent.viewPartBSource model
+            , C.partBSource model
             , div [ class "flex flex-column justify-center items-center" ]
                 [ C.controlProcessButton model.processB Advent.ControlB (initB model.input) stepB
                 , viewProgressB model

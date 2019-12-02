@@ -1,5 +1,6 @@
 module Components exposing (..)
 
+import Advent
 import Exec
 import Html exposing (Html, code, div, input, pre, progress, text)
 import Html.Attributes as A exposing (class, placeholder)
@@ -41,6 +42,13 @@ largeProblemInput txt val action =
     div [ class "flex" ] [ Html.textarea [ class "w-100 h5 ma3", placeholder txt, A.value val, onInput action ] [] ]
 
 
+loadExampleButtons : List Advent.ExampleInput -> Html (Advent.Msg a b)
+loadExampleButtons examples =
+    examples
+        |> List.map (\e -> actionButton e.name (Advent.SetInput e.input))
+        |> div [ class "flex flex-wrap justify-center" ]
+
+
 progressBar : Int -> Int -> Html msg
 progressBar value max =
     progress [ class "w-100 mv2 bg-dark-green", A.max (String.fromInt max), A.value (String.fromInt value) ] []
@@ -50,21 +58,21 @@ controlProcessButton : Exec.Process a -> (Exec.Action a -> msg) -> a -> Exec.Ste
 controlProcessButton process control init step =
     case process of
         Exec.NotRunning ->
-            runButton "Run" (control (Exec.Start init step))
+            actionButton "Run" (control (Exec.Start init step))
 
         Exec.Running _ _ ->
-            runButton "Pause" (control Exec.Pause)
+            actionButton "Pause" (control Exec.Pause)
 
         Exec.Paused _ _ ->
-            runButton "Continue" (control Exec.Continue)
+            actionButton "Continue" (control Exec.Continue)
 
         Exec.Finished val ->
-            runButton "Reset" (control Exec.Reset)
+            actionButton "Reset" (control Exec.Reset)
 
 
-runButton : String -> msg -> Html msg
-runButton txt m =
-    div [ class "f4 link br3 ba bw1 mv2 ph4 pv2 dib moon-gray hover-dark-green pointer", onClick m ] [ text txt ]
+actionButton : String -> msg -> Html msg
+actionButton txt m =
+    div [ class "f4 link br3 ba bw1 ma2 ph4 pv2 dib moon-gray hover-dark-green pointer", onClick m ] [ text txt ]
 
 
 link : String -> String -> Html msg
@@ -84,3 +92,18 @@ sourceCodeLink filename =
     div []
         [ link "View the source for this page on GitHub!" ("https://github.com/rynorris/adventofcode/blob/master/2019/src/" ++ filename)
         ]
+
+
+partASource : Advent.Model a b -> Html (Advent.Msg a b)
+partASource =
+    sourceSegment .partA
+
+
+partBSource : Advent.Model a b -> Html (Advent.Msg a b)
+partBSource =
+    sourceSegment .partB
+
+
+sourceSegment : (Advent.ProblemSource -> String) -> Advent.Model a b -> Html (Advent.Msg a b)
+sourceSegment segment model =
+    model.source |> Maybe.map segment |> Maybe.map codeBlock |> Maybe.withDefault (Html.div [] [])

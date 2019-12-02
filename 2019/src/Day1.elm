@@ -13,6 +13,15 @@ name =
     "Day 1: The Tyranny of the Rocket Equation"
 
 
+exampleInputs : List Advent.ExampleInput
+exampleInputs =
+    [ { name = "12", input = "12" }
+    , { name = "14", input = "14" }
+    , { name = "1969", input = "1969" }
+    , { name = "100756", input = "100756" }
+    ]
+
+
 
 -- Common
 
@@ -119,9 +128,10 @@ view model =
         [ C.title name
         , C.adventOfCodeProblemLink 2019 1
         , C.largeProblemInput "Enter input here" model.input Advent.SetInput
+        , C.loadExampleButtons exampleInputs
         , C.section "Part A"
             [ text "Here we simply map the formula over the list and sum the results."
-            , Advent.viewPartASource model
+            , C.partASource model
             , div [ class "flex flex-column justify-center items-center" ]
                 [ C.controlProcessButton model.processA Advent.ControlA (initA model.input) stepA
                 , viewProgressA model
@@ -129,7 +139,7 @@ view model =
             ]
         , C.section "Part B"
             [ text "Here we define a recursive version of the original function to take into account the fuel mass as well.  Then as before, map and sum."
-            , Advent.viewPartBSource model
+            , C.partBSource model
             , div [ class "flex flex-column justify-center items-center" ]
                 [ C.controlProcessButton model.processB Advent.ControlB (initB model.input) stepB
                 , viewProgressB model
