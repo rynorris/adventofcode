@@ -1,6 +1,8 @@
 dist
+__pycache__/
 dist-*
 cabal-dev
+inputs
 *.o
 *.hi
 *.chi
