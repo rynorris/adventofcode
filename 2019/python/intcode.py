@@ -1,7 +1,6 @@
 
 
 class VM:
-
     def __init__(self, code):
         self.memory = [x for x in code]
         self.pc = 0
@@ -14,7 +13,6 @@ class VM:
             2: (self.__mul, 3),
             99: (self.__halt, 0),
         }
-
 
     def step(self):
         opcode = self.memory[self.pc]
