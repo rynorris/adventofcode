@@ -18,6 +18,21 @@ sample =
     Dict.fromList [ ( ( 0, 0 ), 1 ), ( ( 3, 2 ), 2 ), ( ( 2, 2 ), 3 ), ( ( 1, 3 ), 4 ) ]
 
 
+manhattan : Point -> Point -> Int
+manhattan ( x1, y1 ) ( x2, y2 ) =
+    abs (x1 - x2) + abs (y1 - y2)
+
+
+pointAdd : Point -> Point -> Point
+pointAdd ( x1, y1 ) ( x2, y2 ) =
+    ( x1 + x2, y1 + y2 )
+
+
+scalarMul : Int -> Point -> Point
+scalarMul a ( x, y ) =
+    ( a * x, a * y )
+
+
 drawHtml : (Maybe obj -> Html msg) -> Grid obj -> Html msg
 drawHtml drawOne =
     let
