@@ -35,9 +35,31 @@ parseInput =
 -- Solve Part A
 
 
-neverDecreases : List comparable -> Bool
-neverDecreases xs =
-    List.map2 (\a b -> a <= b) xs (List.drop 1 xs) |> List.all identity
+decreaseIndex : List comparable -> Maybe Int
+decreaseIndex xs =
+    List.map2 (\a b -> a > b) xs (List.drop 1 xs)
+        |> List.indexedMap (\ix isDec -> ( ix, isDec ))
+        |> List.filter Tuple.second
+        |> List.map Tuple.first
+        |> List.head
+
+
+nextCandidate : Int -> Int
+nextCandidate x =
+    let
+        l =
+            x |> String.fromInt |> String.toList
+    in
+    case decreaseIndex l of
+        Just ix ->
+            let
+                multiplier =
+                    10 ^ (List.length l - ix - 2)
+            in
+            nextCandidate ((x // multiplier + 1) * multiplier)
+
+        Nothing ->
+            x
 
 
 splitRuns : List comparable -> List (List comparable)
@@ -72,12 +94,8 @@ hasADouble =
 
 
 isValidA : Int -> Bool
-isValidA x =
-    let
-        l =
-            String.fromInt x |> String.toList
-    in
-    hasADouble l && neverDecreases l
+isValidA =
+    String.fromInt >> String.toList >> hasADouble
 
 
 type StateA
@@ -98,10 +116,10 @@ stepA state =
                 ( AnswerA count, True )
 
             else if isValidA cur then
-                ( InProgressA min max (cur + 1) (count + 1), False )
+                ( InProgressA min max (nextCandidate (cur + 1)) (count + 1), False )
 
             else
-                ( InProgressA min max (cur + 1) count, False )
+                ( InProgressA min max (nextCandidate (cur + 1)) count, False )
 
         _ ->
             ( state, True )
@@ -117,12 +135,8 @@ hasAnExactDouble =
 
 
 isValidB : Int -> Bool
-isValidB x =
-    let
-        l =
-            String.fromInt x |> String.toList
-    in
-    hasAnExactDouble l && neverDecreases l
+isValidB =
+    String.fromInt >> String.toList >> hasAnExactDouble
 
 
 type StateB
@@ -143,10 +157,10 @@ stepB state =
                 ( AnswerB count, True )
 
             else if isValidB cur then
-                ( InProgressB min max (cur + 1) (count + 1), False )
+                ( InProgressB min max (nextCandidate (cur + 1)) (count + 1), False )
 
             else
-                ( InProgressB min max (cur + 1) count, False )
+                ( InProgressB min max (nextCandidate (cur + 1)) count, False )
 
         _ ->
             ( state, True )
@@ -186,10 +200,12 @@ view model =
         [ C.title name
         , C.adventOfCodeProblemLink 2019 4
         , Html.p []
-            [ text "This problem was slightly disappointing for me.  There's lots of scope for clever optimizations here, but the input ranges are small enough that brute-force is feasible, so there's no incentive to do so." ]
+            [ text "This problem was slightly disappointing for me.  There's lots of scope for clever optimizations here, but the input ranges are small enough that brute-force is feasible on modern machines, so there's no incentive to do so." ]
+        , Html.p []
+            [ text "However when I ran this page on a mobile device, the brute-force approach was very slow.  So I made an optimization such that whenever we detect a number with decreasing digits, we skip ahead to the next number without a decrease.  e.g. from 123000 -> 123300" ]
         , C.problemInput "Enter input here (e.g. \"1234-5678\")" model.input Advent.SetInput
         , C.section "Part A"
-            [ text "For this problem I just brute force check every value between the bounds."
+            [ text "For this problem I just brute force check every value between the bounds with the above noted optimization."
             , C.partASource model
             , div [ class "flex flex-column justify-center items-center" ]
                 [ C.controlProcessButton model.processA Advent.ControlA (initA model.input) stepA
@@ -197,7 +213,7 @@ view model =
                 ]
             ]
         , C.section "Part B"
-            [ text "Similarly, brute force with a slightly different condition."
+            [ text "Same as part A just with a slightly modified condition."
             , C.partBSource model
             , div [ class "flex flex-column justify-center items-center" ]
                 [ C.controlProcessButton model.processB Advent.ControlB (initB model.input) stepB
