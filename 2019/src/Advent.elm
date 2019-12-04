@@ -43,8 +43,8 @@ init =
     }
 
 
-update : Msg a b -> Model a b -> ( Model a b, Cmd (Msg a b) )
-update msg model =
+update : Int -> Int -> Msg a b -> Model a b -> ( Model a b, Cmd (Msg a b) )
+update batchA batchB msg model =
     case msg of
         SetInput ans ->
             ( { model | input = ans }, Cmd.none )
@@ -55,14 +55,14 @@ update msg model =
         ControlA action ->
             let
                 ( nextA, cmd ) =
-                    Exec.control model.processA action (ControlA (Exec.Step 1000))
+                    Exec.control model.processA action (ControlA (Exec.Step batchA))
             in
             ( { model | processA = nextA }, cmd )
 
         ControlB action ->
             let
                 ( nextB, cmd ) =
-                    Exec.control model.processB action (ControlB (Exec.Step 1000))
+                    Exec.control model.processB action (ControlB (Exec.Step batchB))
             in
             ( { model | processB = nextB }, cmd )
 

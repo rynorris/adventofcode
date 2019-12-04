@@ -115,7 +115,7 @@ type alias Msg =
 
 
 update =
-    Advent.update
+    Advent.update 1000 1000
 
 
 
