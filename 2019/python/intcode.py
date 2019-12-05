@@ -7,6 +7,8 @@ class VM:
         self.pc = 0
         self.halted = False
         self.debug = False
+        self.input = lambda: input(">> ")
+        self.output = print
 
 
         self.OPS = {
@@ -79,7 +81,7 @@ class VM:
 
         val_strings = [f"{v}" for v in argvals]
 
-        self._debug(f"{name:4} " + " ".join(arg_strings) + " (" + ", ".join(val_strings) + ")")
+        self._debug(f"{self.pc:4}: {name:4} " + " ".join(arg_strings) + " (" + ", ".join(val_strings) + ")")
 
 
     def _arg(self, args, modes, ix):
@@ -105,12 +107,12 @@ class VM:
 
     @staticmethod
     def __inp(vm, o):
-        val = int(input("Enter input: "))
+        val = int(vm.input())
         vm.memory[o] = val
 
     @staticmethod
     def __out(vm, a1):
-        print(a1)
+        vm.output(a1)
 
     @staticmethod
     def __jit(vm, a1, a2):
