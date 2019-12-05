@@ -50,7 +50,7 @@ class VM:
     def _call_op(self, op, modes):
         before_pc = self.pc
 
-        op_args = [a for a in inspect.getargspec(op).args if a != "vm"]
+        op_args = [a for a in inspect.getargspec(op).args if a != "self"]
         raw_args = [self.memory[self.pc + x + 1] for x in range(len(op_args))]
         argvals = []
         for ix, a in enumerate(op_args):
@@ -62,7 +62,7 @@ class VM:
                 raise Exception(f"Invalid argument name: {a}")
 
         self._print_op(op, raw_args, argvals, modes)
-        op(self, *argvals)
+        op(*argvals)
 
         if self.pc == before_pc:
             self.pc += len(op_args) + 1
@@ -93,42 +93,34 @@ class VM:
         else:
             raise Exception(f"Unknown param mode: {mode}")
 
-    @staticmethod
-    def __halt(vm):
-        vm.halted = True
+    # Operations
+    def __halt(self):
+        self.halted = True
 
-    @staticmethod
-    def __add(vm, a1, a2, o):
-        vm.memory[o] = a1 + a2
+    def __add(self, a1, a2, o):
+        self.memory[o] = a1 + a2
 
-    @staticmethod
-    def __mul(vm, a1, a2, o):
-        vm.memory[o] = a1 * a2
+    def __mul(self, a1, a2, o):
+        self.memory[o] = a1 * a2
 
-    @staticmethod
-    def __inp(vm, o):
-        val = int(vm.input())
-        vm.memory[o] = val
+    def __inp(self, o):
+        val = int(self.input())
+        self.memory[o] = val
 
-    @staticmethod
-    def __out(vm, a1):
-        vm.output(a1)
+    def __out(self, a1):
+        self.output(a1)
 
-    @staticmethod
-    def __jit(vm, a1, a2):
+    def __jit(self, a1, a2):
         if a1 != 0:
-            vm.pc = a2
+            self.pc = a2
 
-    @staticmethod
-    def __jif(vm, a1, a2):
+    def __jif(self, a1, a2):
         if a1 == 0:
-            vm.pc = a2
+            self.pc = a2
 
-    @staticmethod
-    def __lt(vm, a1, a2, o):
-        vm.memory[o] = 1 if a1 < a2 else 0
+    def __lt(self, a1, a2, o):
+        self.memory[o] = 1 if a1 < a2 else 0
 
-    @staticmethod
-    def __eq(vm, a1, a2, o):
-        vm.memory[o] = 1 if a1 == a2 else 0
+    def __eq(self, a1, a2, o):
+        self.memory[o] = 1 if a1 == a2 else 0
 
