@@ -54,7 +54,7 @@ stepA state =
                             ( AnswerA nextVm ("HALTED" :: console), True )
 
                         Intcode.WaitingForInput _ _ _ ->
-                            ( InProgressA (Intcode.giveInput 1 nextVm) console, False )
+                            ( InProgressA (Intcode.giveInput 1 nextVm) (">> 1" :: console), False )
 
                         Intcode.WaitingToOutput _ _ val ->
                             ( InProgressA (Intcode.takeOutput nextVm) ((val |> String.fromInt) :: console), False )
@@ -98,7 +98,7 @@ stepB state =
                             ( AnswerB nextVm ("HALTED" :: console), True )
 
                         Intcode.WaitingForInput _ _ _ ->
-                            ( InProgressB (Intcode.giveInput 5 nextVm) console, False )
+                            ( InProgressB (Intcode.giveInput 5 nextVm) (">> 5" :: console), False )
 
                         Intcode.WaitingToOutput _ _ val ->
                             ( InProgressB (Intcode.takeOutput nextVm) ((val |> String.fromInt) :: console), False )
@@ -126,7 +126,7 @@ init =
 
 
 initAction =
-    Advent.loadSourceFile "Day2.elm"
+    Advent.loadSourceFile "Day5.elm"
 
 
 type alias Msg =
@@ -155,7 +155,7 @@ view model =
             ]
         , C.largeProblemInput "Enter input here" model.input Advent.SetInput
         , C.section "Part A"
-            [ text "Here we have implemented the Intcode VM and run the given program to completion.  Not forgetting to make the gravity substitutions before starting!"
+            [ text "Just send in a '1' and read the output."
             , C.partASource model
             , div [ class "flex flex-column justify-center items-center" ]
                 [ C.controlProcessButton model.processA Advent.ControlA (initA model.input) stepA
@@ -163,7 +163,7 @@ view model =
             , viewProgressA model
             ]
         , C.section "Part B"
-            [ text "For this part I do a simple brute-force search over all possible values of noun and verb."
+            [ text "Just send in a '5' and read the output."
             , C.partBSource model
             , div [ class "flex flex-column justify-center items-center" ]
                 [ C.controlProcessButton model.processB Advent.ControlB (initB model.input) stepB
