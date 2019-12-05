@@ -168,7 +168,7 @@ view model =
     , body =
         [ div [ class "flex w-100 vh-100 items-center justify-center pa4 bg-near-black moon-gray sans-serif" ]
             [ div [ class "flex w-100 h-100 mw8 br3 ba bw1 b--dark-green collapse overflow-auto" ]
-                [ div [ class "w5 h-100 br bw1 b--dark-green collapse" ]
+                [ div [ class "w5 h-100 br bw1 b--dark-green collapse overflow-auto" ]
                     [ menuItem Home model
                     , menuItem PagePractice model
                     , menuItem PageDay1 model

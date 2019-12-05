@@ -7,7 +7,7 @@ import Html exposing (Html, button, div, text)
 overviewBody =
     [ Html.p []
         [ C.link "Advent of Code" "https://adventofcode.com/"
-        , text "is a yearly programming challenge taking place throughout December each year."
+        , text " is a yearly programming challenge taking place throughout December each year."
         ]
     , Html.p []
         [ text "One puzzle is released each day, with difficulty generally ramping up throughout the month." ]
