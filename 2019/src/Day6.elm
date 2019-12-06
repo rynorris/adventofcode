@@ -14,9 +14,41 @@ name =
     "Day 6: Universal Orbit Map"
 
 
+exampleA =
+    """COM)B
+B)C
+C)D
+D)E
+E)F
+B)G
+G)H
+D)I
+E)J
+J)K
+K)L"""
+
+
+exampleB =
+    """COM)B
+B)C
+C)D
+D)E
+E)F
+B)G
+G)H
+D)I
+E)J
+J)K
+K)L
+K)YOU
+I)SAN"""
+
+
 exampleInputs : List Advent.ExampleInput
 exampleInputs =
-    []
+    [ { name = "Example Part A", input = exampleA }
+    , { name = "Example Part B", input = exampleB }
+    ]
 
 
 
