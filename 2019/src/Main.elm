@@ -201,6 +201,7 @@ view model =
                     , menuItem PageDay4 model
                     , menuItem PageDay5 model
                     , menuItem PageDay6 model
+                    , disabledMenuItem "Day 7: (Coming soon!)"
                     , menuItem PageDay8 model
                     ]
                 , div [ class "w-100 h-100 pa2 overflow-auto" ] [ renderPage model ]
@@ -224,6 +225,11 @@ menuItemClass id selectedPageId =
             else
                 " hover-bg-dark-green"
            )
+
+
+disabledMenuItem : String -> Html Msg
+disabledMenuItem txt =
+    div [ class "w-100 pa2 bb bw1 b--dark-green o-50" ] [ text txt ]
 
 
 renderPage : Model -> Html Msg
