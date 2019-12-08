@@ -244,7 +244,7 @@ getMemoryAt n vm =
 
 viewMemoryTape : Intcode.MemoryTape -> Html Msg
 viewMemoryTape =
-    Intcode.tapeToList >> listToGrid 10 >> Grid.drawHtml (Maybe.map (String.fromInt >> text) >> Maybe.withDefault (div [] []))
+    Intcode.tapeToList >> listToGrid 10 >> Grid.drawHtml "20px" (Maybe.map (String.fromInt >> text) >> Maybe.withDefault (div [] []))
 
 
 listToGrid : Int -> List Int -> Grid Int

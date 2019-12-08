@@ -2,7 +2,7 @@ module Grid exposing (..)
 
 import Dict exposing (Dict)
 import Html exposing (Html, div, text)
-import Html.Attributes as A exposing (class)
+import Html.Attributes as A exposing (class, style)
 
 
 type alias Point =
@@ -33,11 +33,17 @@ scalarMul a ( x, y ) =
     ( a * x, a * y )
 
 
-drawHtml : (Maybe obj -> Html msg) -> Grid obj -> Html msg
-drawHtml drawOne =
+drawHtml : String -> (Maybe obj -> Html msg) -> Grid obj -> Html msg
+drawHtml cellSize drawOne =
     let
         drawObj =
-            drawOne >> List.singleton >> div [ class "ba b--moon-gray h3 w3 flex justify-center items-center" ]
+            drawOne
+                >> List.singleton
+                >> div
+                    [ class "ba b--moon-gray flex justify-center items-center"
+                    , style "width" cellSize
+                    , style "height" cellSize
+                    ]
 
         packRow =
             div [ class "flex flex-row" ]
