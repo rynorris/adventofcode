@@ -74,14 +74,21 @@ addInt big x =
 
 
 type Vm
-    = Running MemoryTape Addr
-    | Halted MemoryTape Addr
-    | WaitingForInput MemoryTape Addr Addr
-    | WaitingToOutput MemoryTape Addr Addr
+    = Running State
+    | Halted State
+    | WaitingForInput State Addr
+    | WaitingToOutput State Addr
+
+
+type alias State =
+    { memory : MemoryTape
+    , ip : Addr
+    , rel : Addr
+    }
 
 
 type alias Operation =
-    MemoryTape -> Addr -> Result String Vm
+    State -> Result String Vm
 
 
 type Arg
@@ -92,8 +99,8 @@ type Arg
 giveInput : Val -> Vm -> Vm
 giveInput val vm =
     case vm of
-        WaitingForInput tape ip tgt ->
-            Running (setAbs tgt val tape) ip
+        WaitingForInput state tgt ->
+            Running { state | memory = setAbs tgt val state.memory }
 
         _ ->
             vm
@@ -102,8 +109,8 @@ giveInput val vm =
 takeOutput : Vm -> Vm
 takeOutput vm =
     case vm of
-        WaitingToOutput tape ip _ ->
-            Running tape ip
+        WaitingToOutput state _ ->
+            Running state
 
         _ ->
             vm
@@ -136,7 +143,7 @@ createVm =
 
 vmFromTape : MemoryTape -> Vm
 vmFromTape tape =
-    Running tape (BigInt.fromInt 0)
+    Running { memory = tape, ip = BigInt.fromInt 0, rel = BigInt.fromInt 0 }
 
 
 readProgram : String -> List Val
@@ -152,7 +159,7 @@ runProgram xs =
 runToCompletion : Vm -> Result String Vm
 runToCompletion vm =
     case vm of
-        Running _ _ ->
+        Running _ ->
             intcodeStep vm |> Result.andThen runToCompletion
 
         _ ->
@@ -162,42 +169,42 @@ runToCompletion vm =
 getMemory : Vm -> MemoryTape
 getMemory vm =
     case vm of
-        Running mem _ ->
-            mem
+        Running state ->
+            state.memory
 
-        Halted mem _ ->
-            mem
+        Halted state ->
+            state.memory
 
-        WaitingForInput mem _ _ ->
-            mem
+        WaitingForInput state _ ->
+            state.memory
 
-        WaitingToOutput mem _ _ ->
-            mem
+        WaitingToOutput state _ ->
+            state.memory
 
 
 getIp : Vm -> Addr
 getIp vm =
     case vm of
-        Running _ ip ->
-            ip
+        Running state ->
+            state.ip
 
-        Halted _ ip ->
-            ip
+        Halted state ->
+            state.ip
 
-        WaitingForInput _ ip _ ->
-            ip
+        WaitingForInput state _ ->
+            state.ip
 
-        WaitingToOutput _ ip _ ->
-            ip
+        WaitingToOutput state _ ->
+            state.ip
 
 
 intcodeStep : Vm -> Result String Vm
 intcodeStep vm =
     case vm of
-        Running tape ip ->
-            decodeInstruction tape ip
-                |> Result.mapError (\s -> "error decoding instruction at IP = " ++ BigInt.toString ip)
-                |> Result.andThen (\inst -> executeInstruction inst tape ip)
+        Running state ->
+            decodeInstruction state
+                |> Result.mapError (\s -> "error decoding instruction at IP = " ++ BigInt.toString state.ip)
+                |> Result.andThen (\inst -> executeInstruction inst state)
 
         _ ->
             Ok vm
@@ -239,14 +246,14 @@ decodeArg tape ip opcode ix =
             Err ("Unknown addressing mode: " ++ String.fromInt mode)
 
 
-decodeInstruction : MemoryTape -> Addr -> Result String Instruction
-decodeInstruction tape ip =
-    getAbs ip tape
+decodeInstruction : State -> Result String Instruction
+decodeInstruction state =
+    getAbs state.ip state.memory
         |> Result.andThen
             (\opcode ->
                 let
                     arg =
-                        decodeArg tape ip opcode
+                        decodeArg state.memory state.ip opcode
                 in
                 case modBy 100 (downcastUnsafe opcode) of
                     99 ->
@@ -281,11 +288,11 @@ decodeInstruction tape ip =
             )
 
 
-interpretInstruction : MemoryTape -> Addr -> Instruction -> Result String Operation
-interpretInstruction tape ip inst =
+interpretInstruction : State -> Instruction -> Result String Operation
+interpretInstruction state inst =
     let
         resolve =
-            resolveArg tape
+            resolveArg state.memory
     in
     case inst of
         Halt ->
@@ -316,14 +323,14 @@ interpretInstruction tape ip inst =
             Result.map3 opEq (resolve a) (resolve b) (outputArg c)
 
 
-executeInstruction : Instruction -> MemoryTape -> Addr -> Result String Vm
-executeInstruction inst tape ip =
-    interpretInstruction tape ip inst |> Result.andThen (\op -> op tape ip) |> Result.mapError (\s -> "encountered error at IP = " ++ BigInt.toString ip ++ ": " ++ s)
+executeInstruction : Instruction -> State -> Result String Vm
+executeInstruction inst state =
+    interpretInstruction state inst |> Result.andThen (\op -> op state) |> Result.mapError (\s -> "encountered error at IP = " ++ BigInt.toString state.ip ++ ": " ++ s)
 
 
 opHalt : Operation
-opHalt tape ip =
-    Ok (Halted tape ip)
+opHalt state =
+    Ok (Halted state)
 
 
 opAdd : Val -> Val -> Val -> Operation
@@ -337,18 +344,18 @@ opMul =
 
 
 binaryOp : (Val -> Val -> Val) -> Val -> Val -> Val -> Operation
-binaryOp calc a1 a2 tgt tape ip =
-    Ok (Running (setAbs tgt (calc a1 a2) tape) (addInt ip 4))
+binaryOp calc a1 a2 tgt state =
+    Ok (Running { state | memory = setAbs tgt (calc a1 a2) state.memory, ip = addInt state.ip 4 })
 
 
 opInp : Addr -> Operation
-opInp tgt tape ip =
-    Ok (WaitingForInput tape (addInt ip 2) tgt)
+opInp tgt state =
+    Ok (WaitingForInput { state | ip = addInt state.ip 2 } tgt)
 
 
 opOut : Val -> Operation
-opOut val tape ip =
-    Ok (WaitingToOutput tape (addInt ip 2) val)
+opOut val state =
+    Ok (WaitingToOutput { state | ip = addInt state.ip 2 } val)
 
 
 opJit : Val -> Val -> Operation
@@ -362,12 +369,12 @@ opJif =
 
 
 condJump : (Val -> Bool) -> Val -> Addr -> Operation
-condJump cond val tgt tape ip =
+condJump cond val tgt state =
     if cond val then
-        Ok (Running tape tgt)
+        Ok (Running { state | ip = tgt })
 
     else
-        Ok (Running tape (addInt ip 3))
+        Ok (Running { state | ip = addInt state.ip 3 })
 
 
 opLt : Val -> Val -> Val -> Operation
@@ -381,7 +388,7 @@ opEq =
 
 
 condSet : (Val -> Val -> Bool) -> Val -> Val -> Addr -> Operation
-condSet cond a1 a2 tgt tape ip =
+condSet cond a1 a2 tgt state =
     let
         val =
             if cond a1 a2 then
@@ -390,4 +397,4 @@ condSet cond a1 a2 tgt tape ip =
             else
                 BigInt.fromInt 0
     in
-    Ok (Running (setAbs tgt val tape) (addInt ip 4))
+    Ok (Running { state | memory = setAbs tgt val state.memory, ip = addInt state.ip 4 })

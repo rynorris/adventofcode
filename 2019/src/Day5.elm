@@ -51,16 +51,16 @@ stepA state =
             case step of
                 Ok nextVm ->
                     case nextVm of
-                        Intcode.Halted _ _ ->
+                        Intcode.Halted _ ->
                             ( AnswerA nextVm ("HALTED" :: console), True )
 
-                        Intcode.WaitingForInput _ _ _ ->
+                        Intcode.WaitingForInput _ _ ->
                             ( InProgressA (Intcode.giveInput (BigInt.fromInt 1) nextVm) (">> 1" :: console), False )
 
-                        Intcode.WaitingToOutput _ _ val ->
+                        Intcode.WaitingToOutput _ val ->
                             ( InProgressA (Intcode.takeOutput nextVm) ((val |> BigInt.toString) :: console), False )
 
-                        Intcode.Running _ ip ->
+                        Intcode.Running _ ->
                             ( InProgressA nextVm console, False )
 
                 Err txt ->
@@ -95,13 +95,13 @@ stepB state =
             case step of
                 Ok nextVm ->
                     case nextVm of
-                        Intcode.Halted _ _ ->
+                        Intcode.Halted _ ->
                             ( AnswerB nextVm ("HALTED" :: console), True )
 
-                        Intcode.WaitingForInput _ _ _ ->
+                        Intcode.WaitingForInput _ _ ->
                             ( InProgressB (Intcode.giveInput (BigInt.fromInt 5) nextVm) (">> 5" :: console), False )
 
-                        Intcode.WaitingToOutput _ _ val ->
+                        Intcode.WaitingToOutput _ val ->
                             ( InProgressB (Intcode.takeOutput nextVm) ((val |> BigInt.toString) :: console), False )
 
                         _ ->

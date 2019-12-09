@@ -51,7 +51,7 @@ stepA state =
             case step of
                 Ok nextVm ->
                     case nextVm of
-                        Intcode.Halted _ _ ->
+                        Intcode.Halted _ ->
                             ( AnswerA nextVm, True )
 
                         _ ->
