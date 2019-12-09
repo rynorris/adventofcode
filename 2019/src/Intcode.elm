@@ -94,6 +94,7 @@ type alias Operation =
 type Arg
     = Positional Val
     | Immediate Val
+    | Relative Val
 
 
 giveInput : Val -> Vm -> Vm
@@ -116,24 +117,30 @@ takeOutput vm =
             vm
 
 
-resolveArg : MemoryTape -> Arg -> Result String Val
-resolveArg tape arg =
+resolveArg : State -> Arg -> Result String Val
+resolveArg state arg =
     case arg of
         Positional x ->
-            getAbs x tape
+            getAbs x state.memory
 
         Immediate x ->
             Ok x
 
+        Relative x ->
+            getAbs (BigInt.add x state.rel) state.memory
 
-outputArg : Arg -> Result String Val
-outputArg arg =
+
+outputArg : State -> Arg -> Result String Val
+outputArg state arg =
     case arg of
         Positional x ->
             Ok x
 
         Immediate x ->
             Ok x
+
+        Relative x ->
+            Ok (BigInt.add x state.rel)
 
 
 createVm : List Val -> Vm
@@ -203,7 +210,7 @@ intcodeStep vm =
     case vm of
         Running state ->
             decodeInstruction state
-                |> Result.mapError (\s -> "error decoding instruction at IP = " ++ BigInt.toString state.ip)
+                |> Result.mapError (\s -> "error decoding instruction at IP = " ++ BigInt.toString state.ip ++ ": " ++ s)
                 |> Result.andThen (\inst -> executeInstruction inst state)
 
         _ ->
@@ -224,6 +231,7 @@ type Instruction
     | Jif Arg Arg
     | Lt Arg Arg Arg
     | Eq Arg Arg Arg
+    | Arb Arg
 
 
 decodeArg : MemoryTape -> Addr -> Val -> Int -> Result String Arg
@@ -241,6 +249,9 @@ decodeArg tape ip opcode ix =
 
         1 ->
             Result.map Immediate raw
+
+        2 ->
+            Result.map Relative raw
 
         _ ->
             Err ("Unknown addressing mode: " ++ String.fromInt mode)
@@ -283,8 +294,11 @@ decodeInstruction state =
                     8 ->
                         Result.map3 Eq (arg 1) (arg 2) (arg 3)
 
+                    9 ->
+                        Result.map Arb (arg 1)
+
                     x ->
-                        Err ("unknown opcode: " ++ String.fromInt x)
+                        Err ("unknown opcode: " ++ String.fromInt x ++ " (" ++ BigInt.toString opcode ++ ")")
             )
 
 
@@ -292,20 +306,23 @@ interpretInstruction : State -> Instruction -> Result String Operation
 interpretInstruction state inst =
     let
         resolve =
-            resolveArg state.memory
+            resolveArg state
+
+        output =
+            outputArg state
     in
     case inst of
         Halt ->
             Ok opHalt
 
         Add a b c ->
-            Result.map3 opAdd (resolve a) (resolve b) (outputArg c)
+            Result.map3 opAdd (resolve a) (resolve b) (output c)
 
         Mul a b c ->
-            Result.map3 opMul (resolve a) (resolve b) (outputArg c)
+            Result.map3 opMul (resolve a) (resolve b) (output c)
 
         Inp a ->
-            Result.map opInp (outputArg a)
+            Result.map opInp (output a)
 
         Out a ->
             Result.map opOut (resolve a)
@@ -317,10 +334,13 @@ interpretInstruction state inst =
             Result.map2 opJif (resolve a) (resolve b)
 
         Lt a b c ->
-            Result.map3 opLt (resolve a) (resolve b) (outputArg c)
+            Result.map3 opLt (resolve a) (resolve b) (output c)
 
         Eq a b c ->
-            Result.map3 opEq (resolve a) (resolve b) (outputArg c)
+            Result.map3 opEq (resolve a) (resolve b) (output c)
+
+        Arb a ->
+            Result.map opArb (resolve a)
 
 
 executeInstruction : Instruction -> State -> Result String Vm
@@ -398,3 +418,8 @@ condSet cond a1 a2 tgt state =
                 BigInt.fromInt 0
     in
     Ok (Running { state | memory = setAbs tgt val state.memory, ip = addInt state.ip 4 })
+
+
+opArb : Val -> Operation
+opArb a1 state =
+    Ok (Running { state | rel = BigInt.add a1 state.rel, ip = addInt state.ip 2 })
