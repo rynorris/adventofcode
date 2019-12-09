@@ -49,9 +49,9 @@ ensureAddr : Addr -> MemoryTape -> MemoryTape
 ensureAddr n tape =
     let
         shortage =
-            BigInt.add (BigInt.sub (BigInt.fromInt (Array.length tape)) n) (BigInt.fromInt 1)
+            BigInt.add (BigInt.sub n (BigInt.fromInt (Array.length tape))) (BigInt.fromInt 1)
     in
-    if BigInt.gt (BigInt.fromInt 0) shortage then
+    if BigInt.compare shortage (BigInt.fromInt 0) == GT then
         Array.append tape (Array.repeat (downcastUnsafe shortage) (BigInt.fromInt 0))
 
     else
@@ -423,3 +423,28 @@ condSet cond a1 a2 tgt state =
 opArb : Val -> Operation
 opArb a1 state =
     Ok (Running { state | rel = BigInt.add a1 state.rel, ip = addInt state.ip 2 })
+
+
+
+-- Visualization
+
+
+vmToString : Vm -> String
+vmToString vm =
+    case vm of
+        Running state ->
+            "[RUNNING] " ++ stateToString state
+
+        Halted state ->
+            "[HALTED] " ++ stateToString state
+
+        WaitingForInput state _ ->
+            "[INPUT] " ++ stateToString state
+
+        WaitingToOutput state _ ->
+            "[OUTPUT] " ++ stateToString state
+
+
+stateToString : State -> String
+stateToString state =
+    "IP: " ++ BigInt.toString state.ip ++ ", REL: " ++ BigInt.toString state.rel ++ ", MEM: " ++ String.join " " (Array.map BigInt.toString state.memory |> Array.toList)
