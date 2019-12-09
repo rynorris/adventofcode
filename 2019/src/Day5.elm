@@ -1,6 +1,7 @@
 module Day5 exposing (Model, Msg, init, initAction, name, update, view)
 
 import Advent
+import BigInt
 import Components as C
 import Dict exposing (Dict)
 import Exec
@@ -20,9 +21,9 @@ name =
 -- Common
 
 
-parseInput : String -> Intcode.MemoryTape
+parseInput : String -> Intcode.Vm
 parseInput =
-    String.split "," >> List.map (String.toInt >> Maybe.withDefault 0) >> Intcode.tapeFromList
+    Intcode.readProgram >> Intcode.createVm
 
 
 
@@ -36,7 +37,7 @@ type StateA
 
 initA : String -> StateA
 initA =
-    parseInput >> (\mem -> Intcode.Running mem 0) >> (\vm -> InProgressA vm [])
+    parseInput >> (\vm -> InProgressA vm [])
 
 
 stepA : Exec.StepFunction StateA
@@ -54,10 +55,10 @@ stepA state =
                             ( AnswerA nextVm ("HALTED" :: console), True )
 
                         Intcode.WaitingForInput _ _ _ ->
-                            ( InProgressA (Intcode.giveInput 1 nextVm) (">> 1" :: console), False )
+                            ( InProgressA (Intcode.giveInput (BigInt.fromInt 1) nextVm) (">> 1" :: console), False )
 
                         Intcode.WaitingToOutput _ _ val ->
-                            ( InProgressA (Intcode.takeOutput nextVm) ((val |> String.fromInt) :: console), False )
+                            ( InProgressA (Intcode.takeOutput nextVm) ((val |> BigInt.toString) :: console), False )
 
                         Intcode.Running _ ip ->
                             ( InProgressA nextVm console, False )
@@ -80,7 +81,7 @@ type StateB
 
 initB : String -> StateB
 initB =
-    parseInput >> (\mem -> Intcode.Running mem 0) >> (\vm -> InProgressB vm [])
+    parseInput >> (\vm -> InProgressB vm [])
 
 
 stepB : Exec.StepFunction StateB
@@ -98,10 +99,10 @@ stepB state =
                             ( AnswerB nextVm ("HALTED" :: console), True )
 
                         Intcode.WaitingForInput _ _ _ ->
-                            ( InProgressB (Intcode.giveInput 5 nextVm) (">> 5" :: console), False )
+                            ( InProgressB (Intcode.giveInput (BigInt.fromInt 5) nextVm) (">> 5" :: console), False )
 
                         Intcode.WaitingToOutput _ _ val ->
-                            ( InProgressB (Intcode.takeOutput nextVm) ((val |> String.fromInt) :: console), False )
+                            ( InProgressB (Intcode.takeOutput nextVm) ((val |> BigInt.toString) :: console), False )
 
                         _ ->
                             ( InProgressB nextVm console, False )

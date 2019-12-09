@@ -1,6 +1,7 @@
 module Day2 exposing (Model, Msg, init, initAction, name, update, view)
 
 import Advent
+import BigInt
 import Components as C
 import Dict exposing (Dict)
 import Exec
@@ -22,7 +23,7 @@ name =
 
 parseInput : String -> Intcode.MemoryTape
 parseInput =
-    String.split "," >> List.map (String.toInt >> Maybe.withDefault 0) >> Intcode.tapeFromList
+    Intcode.readProgram >> Intcode.tapeFromList
 
 
 
@@ -36,7 +37,7 @@ type StateA
 
 initA : String -> StateA
 initA =
-    parseInput >> Intcode.setAbs 1 12 >> Intcode.setAbs 2 2 >> (\mem -> Intcode.Running mem 0) >> InProgressA
+    parseInput >> Intcode.setAbsInt 1 12 >> Intcode.setAbsInt 2 2 >> Intcode.vmFromTape >> InProgressA
 
 
 stepA : Exec.StepFunction StateA
@@ -68,7 +69,7 @@ stepA state =
 
 
 type StateB
-    = InProgressB (List Int) Int Int
+    = InProgressB (List Intcode.Val) Int Int
     | AnswerB Int Int Int
 
 
@@ -79,7 +80,7 @@ initB =
 
 patchCode : Int -> Int -> Intcode.MemoryTape -> Intcode.MemoryTape
 patchCode n v =
-    Intcode.setAbs 1 n >> Intcode.setAbs 2 v
+    Intcode.setAbsInt 1 n >> Intcode.setAbsInt 2 v
 
 
 nextGuess : Int -> Int -> ( Int, Int )
@@ -103,7 +104,7 @@ stepB state =
                 vm =
                     Intcode.runProgram (code |> Intcode.tapeFromList |> patchCode n v |> Intcode.tapeToList)
             in
-            case vm |> Result.andThen (List.head >> Result.fromMaybe "No answer") of
+            case vm |> Result.andThen (List.head >> Result.fromMaybe "No answer") |> Result.map Intcode.downcastUnsafe of
                 Ok 19690720 ->
                     ( AnswerB n v (n * 100 + v), True )
 
@@ -185,7 +186,7 @@ viewProgressA model =
             case state of
                 AnswerA vm ->
                     div []
-                        [ div [ class "f3" ] [ text ("Answer is: " ++ (getMemoryAt 0 vm |> resultToString identity String.fromInt)) ]
+                        [ div [ class "f3" ] [ text ("Answer is: " ++ (getMemoryAt 0 vm |> resultToString identity BigInt.toString)) ]
                         , div [ class "h5 overflow-auto" ] [ viewMemoryTape (Intcode.getMemory vm) ]
                         ]
 
@@ -237,17 +238,17 @@ resultToString mapA mapB res =
             mapB val
 
 
-getMemoryAt : Int -> Intcode.Vm -> Result String Int
+getMemoryAt : Int -> Intcode.Vm -> Result String Intcode.Val
 getMemoryAt n vm =
-    vm |> Intcode.getMemory |> Intcode.getAbs n
+    vm |> Intcode.getMemory |> Intcode.getAbsInt n
 
 
 viewMemoryTape : Intcode.MemoryTape -> Html Msg
 viewMemoryTape =
-    Intcode.tapeToList >> listToGrid 10 >> Grid.drawHtml "20px" (Maybe.map (String.fromInt >> text) >> Maybe.withDefault (div [] []))
+    Intcode.tapeToList >> listToGrid 10 >> Grid.drawHtml "20px" (Maybe.map (BigInt.toString >> text) >> Maybe.withDefault (div [] []))
 
 
-listToGrid : Int -> List Int -> Grid Int
+listToGrid : Int -> List Intcode.Val -> Grid Intcode.Val
 listToGrid w xs =
     xs
         |> List.indexedMap (\ix x -> ( ( modBy w ix, ix // w ), x ))

@@ -1,49 +1,78 @@
 module Intcode exposing (..)
 
 import Array exposing (Array)
+import BigInt exposing (BigInt)
+
+
+type alias Addr =
+    BigInt
+
+
+type alias Val =
+    BigInt
 
 
 type alias MemoryTape =
-    Array Int
+    Array Val
 
 
-tapeFromList : List Int -> MemoryTape
+tapeFromList : List Val -> MemoryTape
 tapeFromList =
     Array.fromList
 
 
-tapeToList : MemoryTape -> List Int
+tapeToList : MemoryTape -> List Val
 tapeToList =
     Array.toList
 
 
-getAbs : Int -> MemoryTape -> Result String Int
+getAbs : Addr -> MemoryTape -> Result String Val
 getAbs n =
+    Array.get (downcastUnsafe n) >> Result.fromMaybe ("memory index out of bounds: " ++ BigInt.toString n)
+
+
+getAbsInt : Int -> MemoryTape -> Result String Val
+getAbsInt n =
     Array.get n >> Result.fromMaybe ("memory index out of bounds: " ++ String.fromInt n)
 
 
-setAbs : Int -> Int -> MemoryTape -> MemoryTape
-setAbs =
-    Array.set
+setAbs : Addr -> Val -> MemoryTape -> MemoryTape
+setAbs n =
+    Array.set (downcastUnsafe n)
+
+
+setAbsInt : Int -> Int -> MemoryTape -> MemoryTape
+setAbsInt a n =
+    Array.set a (BigInt.fromInt n)
+
+
+downcastUnsafe : BigInt -> Int
+downcastUnsafe =
+    BigInt.toString >> String.toInt >> Maybe.withDefault 0
+
+
+addInt : BigInt -> Int -> BigInt
+addInt big x =
+    BigInt.add big (BigInt.fromInt x)
 
 
 type Vm
-    = Running MemoryTape Int
-    | Halted MemoryTape Int
-    | WaitingForInput MemoryTape Int Int
-    | WaitingToOutput MemoryTape Int Int
+    = Running MemoryTape Addr
+    | Halted MemoryTape Addr
+    | WaitingForInput MemoryTape Addr Addr
+    | WaitingToOutput MemoryTape Addr Addr
 
 
 type alias Operation =
-    MemoryTape -> Int -> Result String Vm
+    MemoryTape -> Addr -> Result String Vm
 
 
 type Arg
-    = Positional Int
-    | Immediate Int
+    = Positional Val
+    | Immediate Val
 
 
-giveInput : Int -> Vm -> Vm
+giveInput : Val -> Vm -> Vm
 giveInput val vm =
     case vm of
         WaitingForInput tape ip tgt ->
@@ -63,7 +92,7 @@ takeOutput vm =
             vm
 
 
-resolveArg : MemoryTape -> Arg -> Result String Int
+resolveArg : MemoryTape -> Arg -> Result String Val
 resolveArg tape arg =
     case arg of
         Positional x ->
@@ -73,8 +102,8 @@ resolveArg tape arg =
             Ok x
 
 
-rawArg : Arg -> Result String Int
-rawArg arg =
+outputArg : Arg -> Result String Val
+outputArg arg =
     case arg of
         Positional x ->
             Ok x
@@ -83,12 +112,22 @@ rawArg arg =
             Ok x
 
 
-createVm : List Int -> Vm
-createVm code =
-    Running (tapeFromList code) 0
+createVm : List Val -> Vm
+createVm =
+    tapeFromList >> vmFromTape
 
 
-runProgram : List Int -> Result String (List Int)
+vmFromTape : MemoryTape -> Vm
+vmFromTape tape =
+    Running tape (BigInt.fromInt 0)
+
+
+readProgram : String -> List Val
+readProgram =
+    String.split "," >> List.map (BigInt.fromIntString >> Maybe.withDefault (BigInt.fromInt 0))
+
+
+runProgram : List Val -> Result String (List Val)
 runProgram xs =
     createVm xs |> runToCompletion |> Result.map (getMemory >> tapeToList)
 
@@ -119,7 +158,7 @@ getMemory vm =
             mem
 
 
-getIp : Vm -> Int
+getIp : Vm -> Addr
 getIp vm =
     case vm of
         Running _ ip ->
@@ -140,7 +179,7 @@ intcodeStep vm =
     case vm of
         Running tape ip ->
             decodeInstruction tape ip
-                |> Result.mapError (\s -> "error decoding instruction at IP = " ++ String.fromInt ip)
+                |> Result.mapError (\s -> "error decoding instruction at IP = " ++ BigInt.toString ip)
                 |> Result.andThen (\inst -> executeInstruction inst tape ip)
 
         _ ->
@@ -163,14 +202,14 @@ type Instruction
     | Eq Arg Arg Arg
 
 
-decodeArg : MemoryTape -> Int -> Int -> Int -> Result String Arg
+decodeArg : MemoryTape -> Addr -> Val -> Int -> Result String Arg
 decodeArg tape ip opcode ix =
     let
         mode =
-            opcode // (10 ^ (ix + 1)) |> modBy 10
+            downcastUnsafe opcode // (10 ^ (ix + 1)) |> modBy 10
 
         raw =
-            getAbs (ip + ix) tape
+            getAbs (BigInt.add ip (BigInt.fromInt ix)) tape
     in
     case mode of
         0 ->
@@ -183,7 +222,7 @@ decodeArg tape ip opcode ix =
             Err ("Unknown addressing mode: " ++ String.fromInt mode)
 
 
-decodeInstruction : MemoryTape -> Int -> Result String Instruction
+decodeInstruction : MemoryTape -> Addr -> Result String Instruction
 decodeInstruction tape ip =
     getAbs ip tape
         |> Result.andThen
@@ -192,7 +231,7 @@ decodeInstruction tape ip =
                     arg =
                         decodeArg tape ip opcode
                 in
-                case modBy 100 opcode of
+                case modBy 100 (downcastUnsafe opcode) of
                     99 ->
                         Ok Halt
 
@@ -225,7 +264,7 @@ decodeInstruction tape ip =
             )
 
 
-interpretInstruction : MemoryTape -> Int -> Instruction -> Result String Operation
+interpretInstruction : MemoryTape -> Addr -> Instruction -> Result String Operation
 interpretInstruction tape ip inst =
     let
         resolve =
@@ -236,13 +275,13 @@ interpretInstruction tape ip inst =
             Ok opHalt
 
         Add a b c ->
-            Result.map3 opAdd (resolve a) (resolve b) (rawArg c)
+            Result.map3 opAdd (resolve a) (resolve b) (outputArg c)
 
         Mul a b c ->
-            Result.map3 opMul (resolve a) (resolve b) (rawArg c)
+            Result.map3 opMul (resolve a) (resolve b) (outputArg c)
 
         Inp a ->
-            Result.map opInp (rawArg a)
+            Result.map opInp (outputArg a)
 
         Out a ->
             Result.map opOut (resolve a)
@@ -254,15 +293,15 @@ interpretInstruction tape ip inst =
             Result.map2 opJif (resolve a) (resolve b)
 
         Lt a b c ->
-            Result.map3 opLt (resolve a) (resolve b) (rawArg c)
+            Result.map3 opLt (resolve a) (resolve b) (outputArg c)
 
         Eq a b c ->
-            Result.map3 opEq (resolve a) (resolve b) (rawArg c)
+            Result.map3 opEq (resolve a) (resolve b) (outputArg c)
 
 
-executeInstruction : Instruction -> MemoryTape -> Int -> Result String Vm
+executeInstruction : Instruction -> MemoryTape -> Addr -> Result String Vm
 executeInstruction inst tape ip =
-    interpretInstruction tape ip inst |> Result.andThen (\op -> op tape ip) |> Result.mapError (\s -> "encountered error at IP = " ++ String.fromInt ip ++ ": " ++ s)
+    interpretInstruction tape ip inst |> Result.andThen (\op -> op tape ip) |> Result.mapError (\s -> "encountered error at IP = " ++ BigInt.toString ip ++ ": " ++ s)
 
 
 opHalt : Operation
@@ -270,68 +309,68 @@ opHalt tape ip =
     Ok (Halted tape ip)
 
 
-opAdd : Int -> Int -> Int -> Operation
+opAdd : Val -> Val -> Val -> Operation
 opAdd =
-    binaryOp (+)
+    binaryOp BigInt.add
 
 
-opMul : Int -> Int -> Int -> Operation
+opMul : Val -> Val -> Val -> Operation
 opMul =
-    binaryOp (*)
+    binaryOp BigInt.mul
 
 
-binaryOp : (Int -> Int -> Int) -> Int -> Int -> Int -> Operation
+binaryOp : (Val -> Val -> Val) -> Val -> Val -> Val -> Operation
 binaryOp calc a1 a2 tgt tape ip =
-    Ok (Running (setAbs tgt (calc a1 a2) tape) (ip + 4))
+    Ok (Running (setAbs tgt (calc a1 a2) tape) (addInt ip 4))
 
 
-opInp : Int -> Operation
+opInp : Addr -> Operation
 opInp tgt tape ip =
-    Ok (WaitingForInput tape (ip + 2) tgt)
+    Ok (WaitingForInput tape (addInt ip 2) tgt)
 
 
-opOut : Int -> Operation
+opOut : Val -> Operation
 opOut val tape ip =
-    Ok (WaitingToOutput tape (ip + 2) val)
+    Ok (WaitingToOutput tape (addInt ip 2) val)
 
 
-opJit : Int -> Int -> Operation
+opJit : Val -> Val -> Operation
 opJit =
-    condJump (\x -> x /= 0)
+    condJump (\x -> BigInt.compare x (BigInt.fromInt 0) /= EQ)
 
 
-opJif : Int -> Int -> Operation
+opJif : Val -> Val -> Operation
 opJif =
-    condJump (\x -> x == 0)
+    condJump (\x -> BigInt.compare x (BigInt.fromInt 0) == EQ)
 
 
-condJump : (Int -> Bool) -> Int -> Int -> Operation
+condJump : (Val -> Bool) -> Val -> Addr -> Operation
 condJump cond val tgt tape ip =
     if cond val then
         Ok (Running tape tgt)
 
     else
-        Ok (Running tape (ip + 3))
+        Ok (Running tape (addInt ip 3))
 
 
-opLt : Int -> Int -> Int -> Operation
+opLt : Val -> Val -> Val -> Operation
 opLt =
-    condSet (\x y -> x < y)
+    condSet BigInt.lt
 
 
-opEq : Int -> Int -> Int -> Operation
+opEq : Val -> Val -> Val -> Operation
 opEq =
-    condSet (\x y -> x == y)
+    condSet (\x y -> BigInt.compare x y == EQ)
 
 
-condSet : (Int -> Int -> Bool) -> Int -> Int -> Int -> Operation
+condSet : (Val -> Val -> Bool) -> Val -> Val -> Addr -> Operation
 condSet cond a1 a2 tgt tape ip =
     let
         val =
             if cond a1 a2 then
-                1
+                BigInt.fromInt 1
 
             else
-                0
+                BigInt.fromInt 0
     in
-    Ok (Running (setAbs tgt val tape) (ip + 4))
+    Ok (Running (setAbs tgt val tape) (addInt ip 4))
