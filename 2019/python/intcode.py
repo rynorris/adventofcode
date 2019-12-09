@@ -4,7 +4,6 @@ import inspect
 class VM:
     def __init__(self, code):
         self.memory = [x for x in code]
-        self.memory += [0] * 10000
         self.pc = 0
         self.halted = False
         self.debug = False
@@ -97,11 +96,13 @@ class VM:
     def _arg(self, args, modes, ix):
         mode = modes[ix] if ix < len(modes) else '0'
         if mode == '0':
+            self._ensure_memory(args[ix])
             return self.memory[args[ix]]
         elif mode == '1':
             return args[ix]
         elif mode == '2':
             addr = self.rel_base + args[ix]
+            self._ensure_memory(addr)
             return self.memory[addr]
         else:
             raise Exception(f"Unknown param mode: {mode}")
@@ -109,12 +110,22 @@ class VM:
     def _out_arg(self, args, modes, ix):
         mode = modes[ix] if ix < len(modes) else '0'
         if mode == '0':
+            self._ensure_memory(args[ix])
             return args[ix]
         elif mode == '2':
             addr = self.rel_base + args[ix]
+            self._ensure_memory(addr)
             return addr
         else:
             raise Exception(f"Unknown output param mode: {mode}")
+
+    def _ensure_memory(self, addr):
+        # Ensures our memory array is long enough for the given address.
+        if len(self.memory) > addr:
+            return
+
+        shortage = addr - len(self.memory) + 1
+        self.memory += [0] * shortage
 
     # Operations
     def __halt(self):
