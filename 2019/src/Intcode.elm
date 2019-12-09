@@ -28,7 +28,7 @@ tapeToList =
 
 getAbs : Addr -> MemoryTape -> Result String Val
 getAbs n tape =
-    if BigInt.gt n (BigInt.fromInt (Array.length tape)) then
+    if BigInt.gt (BigInt.fromInt (Array.length tape)) n then
         Ok (BigInt.fromInt 0)
 
     else
@@ -51,7 +51,7 @@ ensureAddr n tape =
         shortage =
             BigInt.add (BigInt.sub (BigInt.fromInt (Array.length tape)) n) (BigInt.fromInt 1)
     in
-    if BigInt.gt shortage (BigInt.fromInt 0) then
+    if BigInt.gt (BigInt.fromInt 0) shortage then
         Array.append tape (Array.repeat (downcastUnsafe shortage) (BigInt.fromInt 0))
 
     else
