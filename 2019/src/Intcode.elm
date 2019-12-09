@@ -447,4 +447,4 @@ vmToString vm =
 
 stateToString : State -> String
 stateToString state =
-    "IP: " ++ BigInt.toString state.ip ++ ", REL: " ++ BigInt.toString state.rel ++ ", MEM: " ++ String.join " " (Array.map BigInt.toString state.memory |> Array.toList)
+    "IP: " ++ BigInt.toString state.ip ++ ", REL: " ++ BigInt.toString state.rel
