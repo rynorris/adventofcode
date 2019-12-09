@@ -28,7 +28,7 @@ tapeToList =
 
 getAbs : Addr -> MemoryTape -> Result String Val
 getAbs n tape =
-    if BigInt.gt (BigInt.fromInt (Array.length tape)) n then
+    if BigInt.compare n (BigInt.fromInt (Array.length tape)) == LT |> not then
         Ok (BigInt.fromInt 0)
 
     else
