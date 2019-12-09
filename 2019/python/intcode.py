@@ -4,12 +4,14 @@ import inspect
 class VM:
     def __init__(self, code):
         self.memory = [x for x in code]
+        self.memory += [0] * 10000
         self.pc = 0
         self.halted = False
         self.debug = False
         self.input = lambda: input(">> ")
         self.output = print
         self.waiting = None
+        self.rel_base = 0
 
 
         self.OPS = {
@@ -21,6 +23,7 @@ class VM:
             6: self.__jif,
             7: self.__lt,
             8: self.__eq,
+            9: self.__arb,
             99: self.__halt,
         }
 
@@ -62,7 +65,7 @@ class VM:
             if a.startswith("a"):
                 argvals.append(self._arg(raw_args, modes, ix))
             elif a.startswith("o"):
-                argvals.append(raw_args[ix])
+                argvals.append(self._out_arg(raw_args, modes, ix))
             else:
                 raise Exception(f"Invalid argument name: {a}")
 
@@ -81,6 +84,8 @@ class VM:
                 arg_strings.append(f"[{raw:4}]")
             elif mode == '1':
                 arg_strings.append(f"{raw:6}")
+            elif mode == '2':
+                arg_strings.append(f"@{raw:<+4}")
             else:
                 raise Exception(f"Unknown param mode: {mode}")
 
@@ -95,8 +100,21 @@ class VM:
             return self.memory[args[ix]]
         elif mode == '1':
             return args[ix]
+        elif mode == '2':
+            addr = self.rel_base + args[ix]
+            return self.memory[addr]
         else:
             raise Exception(f"Unknown param mode: {mode}")
+
+    def _out_arg(self, args, modes, ix):
+        mode = modes[ix] if ix < len(modes) else '0'
+        if mode == '0':
+            return args[ix]
+        elif mode == '2':
+            addr = self.rel_base + args[ix]
+            return addr
+        else:
+            raise Exception(f"Unknown output param mode: {mode}")
 
     # Operations
     def __halt(self):
@@ -131,4 +149,7 @@ class VM:
 
     def __eq(self, a1, a2, o):
         self.memory[o] = 1 if a1 == a2 else 0
+
+    def __arb(self, a1):
+        self.rel_base += a1
 
