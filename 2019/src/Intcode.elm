@@ -27,23 +27,40 @@ tapeToList =
 
 
 getAbs : Addr -> MemoryTape -> Result String Val
-getAbs n =
-    Array.get (downcastUnsafe n) >> Result.fromMaybe ("memory index out of bounds: " ++ BigInt.toString n)
+getAbs n tape =
+    if BigInt.gt n (BigInt.fromInt (Array.length tape)) then
+        Ok (BigInt.fromInt 0)
+
+    else
+        tape |> Array.get (downcastUnsafe n) |> Result.fromMaybe ("memory index out of bounds: " ++ BigInt.toString n)
 
 
 getAbsInt : Int -> MemoryTape -> Result String Val
-getAbsInt n =
-    Array.get n >> Result.fromMaybe ("memory index out of bounds: " ++ String.fromInt n)
+getAbsInt =
+    BigInt.fromInt >> getAbs
 
 
 setAbs : Addr -> Val -> MemoryTape -> MemoryTape
-setAbs n =
-    Array.set (downcastUnsafe n)
+setAbs n val =
+    ensureAddr n >> Array.set (downcastUnsafe n) val
+
+
+ensureAddr : Addr -> MemoryTape -> MemoryTape
+ensureAddr n tape =
+    let
+        shortage =
+            BigInt.add (BigInt.sub (BigInt.fromInt (Array.length tape)) n) (BigInt.fromInt 1)
+    in
+    if BigInt.gt shortage (BigInt.fromInt 0) then
+        Array.append tape (Array.repeat (downcastUnsafe shortage) (BigInt.fromInt 0))
+
+    else
+        tape
 
 
 setAbsInt : Int -> Int -> MemoryTape -> MemoryTape
 setAbsInt a n =
-    Array.set a (BigInt.fromInt n)
+    setAbs (BigInt.fromInt a) (BigInt.fromInt n)
 
 
 downcastUnsafe : BigInt -> Int
