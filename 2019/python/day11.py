@@ -1,12 +1,14 @@
 import sys
 from collections import defaultdict
-from utils import get_input
+from utils import get_input, print_grid_dict
 from intcode import VM
 
 inp = get_input(2019, 11)
 code = [int(c) for c in inp.split(",")]
 
 class Robot():
+    DIRS = [(0, 1), (-1, 0), (0, -1), (1, 0)]
+
     def __init__(self):
         self.p = (0, 0)
         self.v = (0, 1)
@@ -24,42 +26,31 @@ class Robot():
         return self.colors[self.p]
 
     def step(self):
-        if self.cpu.halted:
-            raise Exception("DONE")
         self.cpu.run()
         color = self.cpu.out_val
         self.cpu.run()
         turn = self.cpu.out_val
 
-        self.colors[self.p] = color
+        if color is not None:
+            self.colors[self.p] = color
+
+        dir_ix = self.DIRS.index(self.v)
         if turn == 0:
-            if self.v == (0, 1):
-                self.v = (-1, 0)
-            elif self.v == (-1, 0):
-                self.v = (0, -1)
-            elif self.v == (0, -1):
-                self.v = (1, 0)
-            elif self.v == (1, 0):
-                self.v = (0, 1)
+            self.v = self.DIRS[(dir_ix + 1) % 4]
         elif turn == 1:
-            if self.v == (0, 1):
-                self.v = (1, 0)
-            elif self.v == (1, 0):
-                self.v = (0, -1)
-            elif self.v == (0, -1):
-                self.v = (-1, 0)
-            elif self.v == (-1, 0):
-                self.v = (0, 1)
+            self.v = self.DIRS[(dir_ix - 1) % 4]
 
         v1, v2 = self.v
         x, y = self.p
         self.p = (x+v1, y+v2)
 
+        if self.cpu.halted:
+            raise Exception("DONE")
+
 
 R = Robot()
 R.colors[(0, 0)] = 1
 for ix in range(10000):
-    num_white = len([p for p, c in R.colors.items() if c == 1])
     painted = len(R.colors)
     print(f"{ix}: {painted}")
     try:
@@ -67,12 +58,5 @@ for ix in range(10000):
     except:
         break
 
-for y in range(-50, 50):
-    for x in range(-50, 50):
-        if R.colors[(x, -y)] == 1:
-            sys.stdout.write("#")
-        else:
-            sys.stdout.write(" ")
-    sys.stdout.write("\n")
-
+print_grid_dict(R.colors, charmap={0: "  ", 1: "##"})
 
