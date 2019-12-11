@@ -10,6 +10,7 @@ class VM:
         self.input = lambda: input(">> ")
         self.output = print
         self.waiting = None
+        self.out_val = None
         self.rel_base = 0
 
 
@@ -36,11 +37,12 @@ class VM:
         self._call_op(op, modes)
 
     def run(self):
+        self.out_val = None
         if self.waiting is not None:
             v = self.waiting
             self.waiting = None
             self.__inp(v)
-        while not self.halted and not self.waiting:
+        while not self.halted and not self.waiting and self.out_val is None:
             self.step()
 
     def _debug(self, msg):
@@ -145,7 +147,10 @@ class VM:
             self.memory[o] = int(v)
 
     def __out(self, a1):
-        self.output(a1)
+        if self.output is not None:
+            self.output(a1)
+        else:
+            self.out_val = a1
 
     def __jit(self, a1, a2):
         if a1 != 0:
