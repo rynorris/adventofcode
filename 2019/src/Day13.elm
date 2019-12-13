@@ -18,15 +18,6 @@ name =
     "Day 13: Care Package"
 
 
-exampleInputs : List Advent.ExampleInput
-exampleInputs =
-    [ { name = "12", input = "12" }
-    , { name = "14", input = "14" }
-    , { name = "1969", input = "1969" }
-    , { name = "100756", input = "100756" }
-    ]
-
-
 
 -- Common
 
@@ -232,9 +223,8 @@ view model =
         [ C.title name
         , C.adventOfCodeProblemLink 2019 13
         , C.largeProblemInput "Enter input here" model.input Advent.SetInput
-        , C.loadExampleButtons exampleInputs
         , C.section "Part A"
-            [ text "Here we simply map the formula over the list and sum the results."
+            [ text "No magic here.  Just running the VM and interpreting the outputs as instructed.  Then count up the number of blocks in the screen grid."
             , C.partASource model
             , div [ class "flex flex-column justify-center items-center" ]
                 [ C.controlProcessButton model.processA Advent.ControlA (initA model.input) stepA
@@ -242,7 +232,7 @@ view model =
                 ]
             ]
         , C.section "Part B"
-            [ text "Here we define a recursive version of the original function to take into account the fuel mass as well.  Then as before, map and sum."
+            [ text "At first I tried to play the game myself, but quickly realised I would need a (very simple) AI to play for me.  Here you can watch it play!"
             , C.partBSource model
             , div [ class "flex flex-column justify-center items-center" ]
                 [ C.controlProcessButton model.processB Advent.ControlB (initB model.input) stepB
