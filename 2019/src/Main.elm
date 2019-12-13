@@ -228,6 +228,9 @@ view model =
                     , disabledMenuItem "Day 7: (Coming soon!)"
                     , menuItem PageDay8 model
                     , menuItem PageDay9 model
+                    , disabledMenuItem "Day 10: (Coming soon!)"
+                    , disabledMenuItem "Day 11: (Coming soon!)"
+                    , disabledMenuItem "Day 12: (Coming soon!)"
                     , menuItem PageDay13 model
                     ]
                 , div [ class "w-100 h-100 pa2 overflow-auto" ] [ renderPage model ]
