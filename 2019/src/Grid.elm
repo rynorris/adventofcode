@@ -94,10 +94,7 @@ expandRow minX maxX items =
                 []
 
         Just ( ( x, _ ), obj ) ->
-            if x == maxX then
-                [ Just obj ]
-
-            else if x == minX then
+            if x == minX then
                 Just obj :: expandRow (minX + 1) maxX (List.tail items |> Maybe.withDefault [])
 
             else if x > minX then
