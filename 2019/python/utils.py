@@ -6,7 +6,7 @@ SESSION = os.getenv("SESSION")
 
 INPUTS_DIR = os.path.join(os.path.dirname(__file__), "inputs")
 
-def print_grid_dict(grid, charmap=None):
+def print_grid_dict(grid, charmap=None, default=0):
     # Expects a grid of (x, y) -> val
     # Charmap maps vals to tokens for printing.  Otherwise prints str(val).
     min_x = min([x for x, y in grid.keys()])
@@ -15,7 +15,7 @@ def print_grid_dict(grid, charmap=None):
     max_y = max([y for x, y in grid.keys()])
     for y in range(min_y, max_y+1):
         for x in range(min_x, max_x+1):
-            v = grid[(x, y)]
+            v = grid.get((x, y), default)
             if charmap:
                 v = charmap[v]
             sys.stdout.write(str(v))
