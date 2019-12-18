@@ -1,6 +1,10 @@
 import sys
 import os
-import requests
+
+try:
+    import requests
+except:
+    print("Requests not found.  Will not be able to retrieve remote input.")
 
 SESSION = os.getenv("SESSION")
 
