@@ -30,7 +30,7 @@ def get_input(year, day):
     cached_input = _get_cached_input(year, day)
     if cached_input:
         print(f"Found cached input for {year} day {day}")
-        return cached_input
+        return cached_input.strip()
 
     print(f"No cached input for {year} day {day}, fetching from server...")
     url = f"https://adventofcode.com/{year}/day/{day}/input"
@@ -43,7 +43,7 @@ def get_input(year, day):
 
     print(f"Fetched input for {year} day {day}.  Caching for later.")
     _cache_input(year, day, resp.text)
-    return resp.text
+    return resp.text.strip()
 
 
 def _get_cached_input(year, day):
